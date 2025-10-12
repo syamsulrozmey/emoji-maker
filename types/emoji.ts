@@ -1,8 +1,14 @@
+export interface Folder {
+  id: string;
+  name: string;
+  createdAt: number;
+}
+
 export interface Emoji {
   id: string;
   imageUrl: string;
   title: string;
-  category?: string;
+  folderId?: string | null;
   isLiked?: boolean;
   createdAt?: number;
 }

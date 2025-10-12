@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Download, Heart } from 'lucide-react';
+import { Download, Heart, Folder } from 'lucide-react';
 import { Button } from './ui/button';
 
 interface EmojiCardProps {
@@ -10,9 +10,20 @@ interface EmojiCardProps {
   title: string;
   onLike?: () => void;
   isLiked?: boolean;
+  onAssignFolder?: () => void;
+  folderId?: string | null;
+  onImageClick?: () => void;
 }
 
-export function EmojiCard({ imageUrl, title, onLike, isLiked = false }: EmojiCardProps) {
+export function EmojiCard({ 
+  imageUrl, 
+  title, 
+  onLike, 
+  isLiked = false,
+  onAssignFolder,
+  folderId,
+  onImageClick,
+}: EmojiCardProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   const handleDownload = async () => {
@@ -38,6 +49,7 @@ export function EmojiCard({ imageUrl, title, onLike, isLiked = false }: EmojiCar
         className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 group cursor-pointer"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
+        onClick={onImageClick}
       >
         <Image
           src={imageUrl}
@@ -52,7 +64,10 @@ export function EmojiCard({ imageUrl, title, onLike, isLiked = false }: EmojiCar
               variant="secondary"
               size="icon"
               className="h-10 w-10 rounded-full bg-white hover:bg-gray-100"
-              onClick={handleDownload}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDownload();
+              }}
             >
               <Download className="h-5 w-5 text-gray-900" />
             </Button>
@@ -60,7 +75,10 @@ export function EmojiCard({ imageUrl, title, onLike, isLiked = false }: EmojiCar
               variant="secondary"
               size="icon"
               className="h-10 w-10 rounded-full bg-white hover:bg-gray-100"
-              onClick={onLike}
+              onClick={(e) => {
+                e.stopPropagation();
+                onLike?.();
+              }}
             >
               <Heart
                 className={`h-5 w-5 ${
@@ -68,6 +86,30 @@ export function EmojiCard({ imageUrl, title, onLike, isLiked = false }: EmojiCar
                 }`}
               />
             </Button>
+            {onAssignFolder && (
+              <Button
+                variant="secondary"
+                size="icon"
+                className="h-10 w-10 rounded-full bg-white hover:bg-gray-100"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAssignFolder();
+                }}
+              >
+                <Folder
+                  className={`h-5 w-5 ${
+                    folderId ? 'fill-blue-500 text-blue-500' : 'text-gray-900'
+                  }`}
+                />
+              </Button>
+            )}
+          </div>
+        )}
+        {folderId && !isHovered && (
+          <div className="absolute top-2 right-2">
+            <div className="bg-blue-500 rounded-full p-1.5">
+              <Folder className="h-3 w-3 text-white fill-white" />
+            </div>
           </div>
         )}
       </div>

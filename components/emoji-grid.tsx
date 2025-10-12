@@ -6,9 +6,11 @@ import { Emoji } from '@/types/emoji';
 interface EmojiGridProps {
   emojis: Emoji[];
   onLike: (id: string) => void;
+  onAssignFolder: (id: string) => void;
+  onImageClick: (id: string) => void;
 }
 
-export function EmojiGrid({ emojis, onLike }: EmojiGridProps) {
+export function EmojiGrid({ emojis, onLike, onAssignFolder, onImageClick }: EmojiGridProps) {
   if (emojis.length === 0) {
     return (
       <div className="text-center py-12">
@@ -26,6 +28,9 @@ export function EmojiGrid({ emojis, onLike }: EmojiGridProps) {
           title={emoji.title}
           onLike={() => onLike(emoji.id)}
           isLiked={emoji.isLiked}
+          onAssignFolder={() => onAssignFolder(emoji.id)}
+          folderId={emoji.folderId}
+          onImageClick={() => onImageClick(emoji.id)}
         />
       ))}
     </div>
