@@ -1,36 +1,184 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎨 Emoji Maker
 
-## Getting Started
+Generate custom emojis using AI-powered text-to-image generation with Replicate's SDXL Emoji model.
 
-First, run the development server:
+![Emoji Maker](requirements/Mockup.png)
 
+## ✨ Features
+
+- 🤖 **AI-Powered Generation**: Create custom emojis from text prompts using Replicate's SDXL Emoji model
+- 💾 **Persistent Storage**: All generated emojis are saved locally using localStorage
+- ❤️ **Like System**: Mark your favorite emojis
+- 📥 **Download**: Download any emoji as a PNG file
+- 🏷️ **Filtering**: Organize emojis by categories (All, Animals, Cars)
+- 🎭 **Beautiful UI**: Clean, minimalist design with smooth animations
+- 📱 **Responsive**: Works seamlessly on desktop and mobile devices
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 18+ installed
+- A Replicate API account and token
+
+### Installation
+
+1. Clone the repository:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cd emoji-maker
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Set up your environment variables:
+```bash
+cp .env.example .env.local
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. Add your Replicate API token to `.env.local`:
+```env
+REPLICATE_API_TOKEN=r8_your_actual_token_here
+```
 
-## Learn More
+Get your API token from [Replicate Account Settings](https://replicate.com/account/api-tokens)
 
-To learn more about Next.js, take a look at the following resources:
+5. Run the development server:
+```bash
+npm run dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+6. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🎯 Usage
 
-## Deploy on Vercel
+1. **Generate an Emoji**:
+   - Enter a text prompt describing the emoji you want (e.g., "Astro cat surfing")
+   - Click "Generate custom emoji"
+   - Wait for the AI to create your emoji
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+2. **Interact with Emojis**:
+   - Hover over any emoji to reveal action buttons
+   - Click the download icon to save the emoji
+   - Click the heart icon to like/unlike
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+3. **Filter Emojis**:
+   - Use the tabs (All, Animals, Cars) to filter your generated emojis
+   - Click "Add folder" to create custom categories (coming soon)
+
+## 🛠️ Tech Stack
+
+- **Framework**: [Next.js 15](https://nextjs.org/) with App Router
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS 4
+- **UI Components**: [shadcn/ui](https://ui.shadcn.com/)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **AI Model**: [Replicate SDXL Emoji](https://replicate.com/fofr/sdxl-emoji)
+
+## 📁 Project Structure
+
+```
+emoji-maker/
+├── app/
+│   ├── api/
+│   │   └── generate/
+│   │       └── route.ts          # API route for emoji generation
+│   ├── favicon.ico
+│   ├── globals.css               # Global styles and animations
+│   ├── layout.tsx                # Root layout
+│   └── page.tsx                  # Main page with state management
+├── components/
+│   ├── ui/                       # shadcn/ui components
+│   ├── emoji-card.tsx            # Individual emoji card with hover effects
+│   ├── emoji-grid.tsx            # Grid layout for emojis
+│   ├── filter-tabs.tsx           # Category filter tabs
+│   ├── header.tsx                # Top navigation header
+│   ├── loading-skeleton.tsx     # Loading animation
+│   └── prompt-input.tsx          # Prompt input form
+├── lib/
+│   └── utils.ts                  # Utility functions
+├── .env.example                  # Environment variables template
+└── package.json
+```
+
+## 🎨 Components
+
+### Header
+Displays credits, help button, upgrade option, and user avatar.
+
+### PromptInput
+Form component for entering text prompts to generate emojis.
+
+### FilterTabs
+Category filtering system with "All", "Animals", "Cars" tabs and folder management.
+
+### EmojiGrid
+Responsive grid layout displaying all generated emojis.
+
+### EmojiCard
+Individual emoji display with hover effects revealing download and like buttons.
+
+## 🔑 Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `REPLICATE_API_TOKEN` | Your Replicate API token | Yes |
+
+## 📝 API Routes
+
+### POST `/api/generate`
+
+Generates a new emoji from a text prompt.
+
+**Request Body:**
+```json
+{
+  "prompt": "Astro cat surfing"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "imageUrl": "https://replicate.delivery/.../output.png",
+  "prompt": "Astro cat surfing"
+}
+```
+
+## 🎭 Features in Detail
+
+### Local Storage
+All generated emojis are automatically saved to your browser's localStorage, so they persist across sessions.
+
+### Credits System
+Track your usage with a credit system. Each generation costs 1 credit. (Note: This is a UI demo - implement actual credit tracking with a backend)
+
+### Download Functionality
+Click the download button on any emoji to save it as a PNG file to your device.
+
+### Like System
+Mark your favorite emojis with the heart button. Liked emojis are saved locally.
+
+## 🚧 Future Enhancements
+
+- [ ] User authentication with Clerk
+- [ ] Database integration with Supabase
+- [ ] Custom folder creation
+- [ ] Emoji sharing functionality
+- [ ] Emoji editing and variants
+- [ ] Export multiple emojis at once
+- [ ] Search functionality
+- [ ] Advanced filtering options
+
+## 📄 License
+
+This project is open source and available under the MIT License.
+
+## 🙏 Acknowledgments
+
+- [Replicate](https://replicate.com/) for the SDXL Emoji model
+- [shadcn/ui](https://ui.shadcn.com/) for the beautiful UI components
+- [Next.js](https://nextjs.org/) team for the amazing framework
