@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { X, ChevronLeft, ChevronRight, Trash2, Download, Heart, Folder as FolderIcon } from 'lucide-react';
 import { Button } from './ui/button';
@@ -58,6 +58,19 @@ export function ImageLightboxModal({
     };
   }, [isOpen]);
 
+  // Navigation functions
+  const goToNext = useCallback(() => {
+    if (currentIndex < emojis.length - 1) {
+      setCurrentIndex((prev) => prev + 1);
+    }
+  }, [currentIndex, emojis.length]);
+
+  const goToPrevious = useCallback(() => {
+    if (currentIndex > 0) {
+      setCurrentIndex((prev) => prev - 1);
+    }
+  }, [currentIndex]);
+
   // Keyboard navigation
   useEffect(() => {
     if (!isOpen) return;
@@ -74,7 +87,7 @@ export function ImageLightboxModal({
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, currentIndex, emojis.length]);
+  }, [isOpen, goToNext, goToPrevious, onClose]);
 
   if (!isOpen || emojis.length === 0) return null;
 
@@ -83,18 +96,6 @@ export function ImageLightboxModal({
 
   const isFirst = currentIndex === 0;
   const isLast = currentIndex === emojis.length - 1;
-
-  const goToNext = () => {
-    if (!isLast) {
-      setCurrentIndex((prev) => prev + 1);
-    }
-  };
-
-  const goToPrevious = () => {
-    if (!isFirst) {
-      setCurrentIndex((prev) => prev - 1);
-    }
-  };
 
   const handleDownload = async () => {
     try {

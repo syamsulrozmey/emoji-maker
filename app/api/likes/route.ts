@@ -60,15 +60,7 @@ export async function POST(request: NextRequest) {
 
       if (decrementError) {
         console.error('Error decrementing likes:', decrementError);
-        // If RPC doesn't exist, try manual update
-        const { error: manualError } = await supabase
-          .from('emojis')
-          .update({ likes_count: supabase.raw('likes_count - 1') })
-          .eq('id', emojiId);
-        
-        if (manualError) {
-          console.error('Error manually decrementing likes:', manualError);
-        }
+        console.warn('RPC function decrement_likes not found. Please create it in Supabase.');
       }
 
       isLiked = false;
@@ -94,15 +86,7 @@ export async function POST(request: NextRequest) {
 
       if (incrementError) {
         console.error('Error incrementing likes:', incrementError);
-        // If RPC doesn't exist, try manual update
-        const { error: manualError } = await supabase
-          .from('emojis')
-          .update({ likes_count: supabase.raw('likes_count + 1') })
-          .eq('id', emojiId);
-        
-        if (manualError) {
-          console.error('Error manually incrementing likes:', manualError);
-        }
+        console.warn('RPC function increment_likes not found. Please create it in Supabase.');
       }
 
       isLiked = true;
