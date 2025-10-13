@@ -1,7 +1,7 @@
 'use client';
 
 import { HelpCircle } from 'lucide-react';
-import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
+import { SignedIn, UserButton } from '@clerk/nextjs';
 import { Button } from './ui/button';
 
 interface HeaderProps {
@@ -41,19 +41,6 @@ export function Header({ credits = 5 }: HeaderProps) {
         <Button className="bg-gray-900 hover:bg-gray-800 text-white rounded-lg px-6">
           Upgrade
         </Button>
-        
-        <SignedOut>
-          <SignInButton mode="modal">
-            <Button variant="outline" className="rounded-lg">
-              Sign In
-            </Button>
-          </SignInButton>
-          <SignUpButton mode="modal">
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
-              Sign Up
-            </Button>
-          </SignUpButton>
-        </SignedOut>
         
         <SignedIn>
           <UserButton afterSignOutUrl="/" />

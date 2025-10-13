@@ -22,27 +22,44 @@ export default function Home() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxEmojiId, setLightboxEmojiId] = useState<string | null>(null);
 
-  // Load data from localStorage on mount
-  useEffect(() => {
-    const savedEmojis = localStorage.getItem('emojis');
-    const savedFolders = localStorage.getItem('folders');
-    
-    if (savedEmojis) {
-      try {
-        const parsed = JSON.parse(savedEmojis) as Emoji[];
-        // Migrate old emoji data from category to folderId and filter out invalid emojis
-        const migrated = parsed
-          .map((emoji) => ({
-            ...emoji,
-            folderId: emoji.folderId !== undefined ? emoji.folderId : null,
-          }))
-          .filter((emoji) => typeof emoji.imageUrl === 'string' && emoji.imageUrl.trim() !== '');
-        setEmojis(migrated);
-      } catch (error) {
-        console.error('Error loading emojis:', error);
+  // Fetch emojis from Supabase database
+  const fetchEmojis = async () => {
+    try {
+      const response = await fetch('/api/emojis');
+      const data = await response.json();
+      
+      if (data.success && data.emojis) {
+        // Transform database format to frontend format
+        const transformedEmojis: Emoji[] = data.emojis.map((emoji: {
+          id: number;
+          image_url: string;
+          prompt: string;
+          created_at: string;
+          likes_count: number;
+          isLiked: boolean;
+        }) => ({
+          id: emoji.id.toString(),
+          imageUrl: emoji.image_url,
+          title: emoji.prompt,
+          folderId: null, // folders not persisted in database yet
+          isLiked: emoji.isLiked, // from database join with emoji_likes
+          likesCount: emoji.likes_count,
+          createdAt: new Date(emoji.created_at).getTime(),
+        }));
+        
+        setEmojis(transformedEmojis);
       }
+    } catch (error) {
+      console.error('Error fetching emojis:', error);
     }
-    
+  };
+
+  // Load emojis from database on mount
+  useEffect(() => {
+    fetchEmojis();
+
+    // Load folders from localStorage (will persist to database later)
+    const savedFolders = localStorage.getItem('folders');
     if (savedFolders) {
       try {
         setFolders(JSON.parse(savedFolders));
@@ -52,14 +69,7 @@ export default function Home() {
     }
   }, []);
 
-  // Save emojis to localStorage
-  useEffect(() => {
-    if (emojis.length > 0) {
-      localStorage.setItem('emojis', JSON.stringify(emojis));
-    }
-  }, [emojis]);
-
-  // Save folders to localStorage
+  // Save folders to localStorage (temporary - will move to database later)
   useEffect(() => {
     localStorage.setItem('folders', JSON.stringify(folders));
   }, [folders]);
@@ -86,17 +96,22 @@ export default function Home() {
 
       const data = await response.json();
       
-      const newEmoji: Emoji = {
-        id: Date.now().toString(),
-        imageUrl: data.imageUrl,
-        title: prompt,
-        folderId: null,
-        isLiked: false,
-        createdAt: Date.now(),
-      };
+      // API now returns { success: true, emoji: { id, imageUrl, prompt, ... } }
+      if (data.success && data.emoji) {
+        const newEmoji: Emoji = {
+          id: data.emoji.id.toString(),
+          imageUrl: data.emoji.imageUrl,
+          title: data.emoji.prompt,
+          folderId: null,
+          isLiked: false,
+          likesCount: data.emoji.likesCount || 0,
+          createdAt: new Date(data.emoji.createdAt).getTime(),
+        };
 
-      setEmojis((prev) => [newEmoji, ...prev]);
-      setCredits((prev) => Math.max(0, prev - 1));
+        // Add new emoji to the top of the grid
+        setEmojis((prev) => [newEmoji, ...prev]);
+        setCredits((prev) => Math.max(0, prev - 1));
+      }
     } catch (error) {
       console.error('Error generating emoji:', error);
       alert('Failed to generate emoji. Please try again.');
@@ -105,12 +120,62 @@ export default function Home() {
     }
   };
 
-  const handleLike = (id: string) => {
+  const handleLike = async (id: string) => {
+    // Optimistic update - update UI immediately
+    const emoji = emojis.find((e) => e.id === id);
+    if (!emoji) return;
+
+    const wasLiked = emoji.isLiked;
+    const newLikesCount = wasLiked 
+      ? (emoji.likesCount || 0) - 1 
+      : (emoji.likesCount || 0) + 1;
+
     setEmojis((prev) =>
-      prev.map((emoji) =>
-        emoji.id === id ? { ...emoji, isLiked: !emoji.isLiked } : emoji
+      prev.map((e) =>
+        e.id === id 
+          ? { ...e, isLiked: !e.isLiked, likesCount: newLikesCount } 
+          : e
       )
     );
+
+    // Call API to persist the like/unlike
+    try {
+      const response = await fetch('/api/likes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ emojiId: parseInt(id) }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to toggle like');
+      }
+
+      const data = await response.json();
+
+      // Update with actual data from server
+      if (data.success) {
+        setEmojis((prev) =>
+          prev.map((e) =>
+            e.id === id 
+              ? { ...e, isLiked: data.isLiked, likesCount: data.likesCount } 
+              : e
+          )
+        );
+      }
+    } catch (error) {
+      console.error('Error toggling like:', error);
+      // Revert optimistic update on error
+      setEmojis((prev) =>
+        prev.map((e) =>
+          e.id === id 
+            ? { ...e, isLiked: wasLiked, likesCount: emoji.likesCount || 0 } 
+            : e
+        )
+      );
+      alert('Failed to update like. Please try again.');
+    }
   };
 
   const handleCreateFolder = (name: string) => {

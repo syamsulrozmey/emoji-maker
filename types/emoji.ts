@@ -10,6 +10,7 @@ export interface Emoji {
   title: string;
   folderId?: string | null;
   isLiked?: boolean;
+  likesCount?: number;
   createdAt?: number;
 }
 
