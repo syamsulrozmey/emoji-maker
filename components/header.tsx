@@ -1,6 +1,7 @@
 'use client';
 
-import { HelpCircle, Sparkles } from 'lucide-react';
+import { HelpCircle } from 'lucide-react';
+import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
 import { Button } from './ui/button';
 
 interface HeaderProps {
@@ -41,9 +42,22 @@ export function Header({ credits = 5 }: HeaderProps) {
           Upgrade
         </Button>
         
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center">
-          <Sparkles className="h-5 w-5 text-white" />
-        </div>
+        <SignedOut>
+          <SignInButton mode="modal">
+            <Button variant="outline" className="rounded-lg">
+              Sign In
+            </Button>
+          </SignInButton>
+          <SignUpButton mode="modal">
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
+              Sign Up
+            </Button>
+          </SignUpButton>
+        </SignedOut>
+        
+        <SignedIn>
+          <UserButton afterSignOutUrl="/" />
+        </SignedIn>
       </div>
     </header>
   );

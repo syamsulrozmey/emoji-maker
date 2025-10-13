@@ -29,12 +29,14 @@ export default function Home() {
     
     if (savedEmojis) {
       try {
-        const parsed = JSON.parse(savedEmojis);
-        // Migrate old emoji data from category to folderId
-        const migrated = parsed.map((emoji: any) => ({
-          ...emoji,
-          folderId: emoji.folderId !== undefined ? emoji.folderId : null,
-        }));
+        const parsed = JSON.parse(savedEmojis) as Emoji[];
+        // Migrate old emoji data from category to folderId and filter out invalid emojis
+        const migrated = parsed
+          .map((emoji) => ({
+            ...emoji,
+            folderId: emoji.folderId !== undefined ? emoji.folderId : null,
+          }))
+          .filter((emoji) => typeof emoji.imageUrl === 'string' && emoji.imageUrl.trim() !== '');
         setEmojis(migrated);
       } catch (error) {
         console.error('Error loading emojis:', error);

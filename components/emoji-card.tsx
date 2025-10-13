@@ -43,6 +43,11 @@ export function EmojiCard({
     }
   };
 
+  // Don't render if imageUrl is empty or invalid
+  if (!imageUrl || typeof imageUrl !== 'string' || imageUrl.trim() === '') {
+    return null;
+  }
+
   return (
     <div className="flex flex-col gap-2">
       <div

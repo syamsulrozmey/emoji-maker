@@ -93,3 +93,7 @@ emoji-maker/
 ├── README.md
 └── tsconfig.json
 ```
+
+# Rules
+- All components should go all in /components and be named like example-component.tsx unless otherwise specified
+- All new pages go in /app
