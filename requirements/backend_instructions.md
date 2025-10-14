@@ -32,6 +32,22 @@ TABLE emoji_likes (
   PRIMARY KEY (user_id, emoji_id)
 );
 
+TABLE folders (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+TABLE emoji_folders (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  emoji_id BIGINT REFERENCES emojis(id) ON DELETE CASCADE,
+  folder_id UUID REFERENCES folders(id) ON DELETE CASCADE,
+  user_id TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(emoji_id, user_id)
+);
+
 # Requirements
 1. Create user to user table
    0. Clerk is already setup, dont need to worry about it
@@ -47,6 +63,12 @@ TABLE emoji_likes (
 4. Likes interaction
    1. When user check on 'like' button, the num_likes should increase on the 'emojis' table
    2. when user un-check 'like' button, the num_likes should decrease on the 'emojis' table
+5. Folders (Categories/Tabs) management
+   1. Users can create, rename, and delete their own folders
+   2. Users can assign emojis to folders (user-specific assignments)
+   3. Each user has their own separate folders and emoji-to-folder assignments
+   4. Folders are stored in 'folders' table
+   5. Emoji-to-folder assignments are stored in 'emoji_folders' junction table
 
 
 # Documentations
