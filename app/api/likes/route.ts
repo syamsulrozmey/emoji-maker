@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { supabase } from '@/lib/supabase';
+import { ensureUserProfile } from '@/lib/ensure-profile';
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,6 +12,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Unauthorized - Please sign in to like emojis' },
         { status: 401 }
+      );
+    }
+
+    // Ensure user profile exists (required for foreign key constraint)
+    try {
+      await ensureUserProfile(userId);
+    } catch (profileError) {
+      console.error('Failed to ensure user profile:', profileError);
+      return NextResponse.json(
+        { error: 'Failed to verify user profile' },
+        { status: 500 }
       );
     }
 
@@ -50,17 +62,34 @@ export async function POST(request: NextRequest) {
 
       if (deleteError) {
         console.error('Error removing like:', deleteError);
-        throw deleteError;
+        return NextResponse.json(
+          { error: `Failed to remove like: ${deleteError.message}` },
+          { status: 500 }
+        );
       }
 
       // 2. Decrement likes_count in emojis table
-      const { error: decrementError } = await supabase.rpc('decrement_likes', {
+      // Try RPC function first, fallback to fetching and updating manually
+      const { error: rpcError } = await supabase.rpc('decrement_likes', {
         emoji_id: emojiId
       });
 
-      if (decrementError) {
-        console.error('Error decrementing likes:', decrementError);
-        console.warn('RPC function decrement_likes not found. Please create it in Supabase.');
+      if (rpcError) {
+        console.warn('RPC decrement_likes not available, using manual update:', rpcError.message);
+        // Fallback: Fetch current count, decrement, and update
+        const { data: currentEmoji } = await supabase
+          .from('emojis')
+          .select('likes_count')
+          .eq('id', emojiId)
+          .single();
+        
+        if (currentEmoji) {
+          const newCount = Math.max((currentEmoji.likes_count || 0) - 1, 0);
+          await supabase
+            .from('emojis')
+            .update({ likes_count: newCount })
+            .eq('id', emojiId);
+        }
       }
 
       isLiked = false;
@@ -76,17 +105,34 @@ export async function POST(request: NextRequest) {
 
       if (insertError) {
         console.error('Error adding like:', insertError);
-        throw insertError;
+        return NextResponse.json(
+          { error: `Failed to add like: ${insertError.message}` },
+          { status: 500 }
+        );
       }
 
       // 2. Increment likes_count in emojis table
-      const { error: incrementError } = await supabase.rpc('increment_likes', {
+      // Try RPC function first, fallback to fetching and updating manually
+      const { error: rpcError } = await supabase.rpc('increment_likes', {
         emoji_id: emojiId
       });
 
-      if (incrementError) {
-        console.error('Error incrementing likes:', incrementError);
-        console.warn('RPC function increment_likes not found. Please create it in Supabase.');
+      if (rpcError) {
+        console.warn('RPC increment_likes not available, using manual update:', rpcError.message);
+        // Fallback: Fetch current count, increment, and update
+        const { data: currentEmoji } = await supabase
+          .from('emojis')
+          .select('likes_count')
+          .eq('id', emojiId)
+          .single();
+        
+        if (currentEmoji) {
+          const newCount = (currentEmoji.likes_count || 0) + 1;
+          await supabase
+            .from('emojis')
+            .update({ likes_count: newCount })
+            .eq('id', emojiId);
+        }
       }
 
       isLiked = true;

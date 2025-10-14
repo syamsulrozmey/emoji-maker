@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useUser } from '@clerk/nextjs';
 import { Header } from '@/components/header';
 import { PromptInput } from '@/components/prompt-input';
 import { FilterTabs } from '@/components/filter-tabs';
@@ -11,6 +12,7 @@ import { ImageLightboxModal } from '@/components/image-lightbox-modal';
 import { Emoji, Folder } from '@/types/emoji';
 
 export default function Home() {
+  const { isLoaded, isSignedIn } = useUser();
   const [emojis, setEmojis] = useState<Emoji[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -69,11 +71,14 @@ export default function Home() {
     }
   };
 
-  // Load emojis and folders from database on mount
+  // Load emojis and folders from database when user is authenticated
+  // Profile creation is now handled automatically by middleware
   useEffect(() => {
-    fetchEmojis();
-    fetchFolders();
-  }, []);
+    if (isLoaded && isSignedIn) {
+      fetchEmojis();
+      fetchFolders();
+    }
+  }, [isLoaded, isSignedIn]);
 
   const handleGenerate = async (prompt: string) => {
     if (credits <= 0) {
