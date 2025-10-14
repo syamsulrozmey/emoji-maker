@@ -37,12 +37,13 @@ export default function Home() {
           created_at: string;
           likes_count: number;
           isLiked: boolean;
+          folder_id: string | null;
         }) => ({
           id: emoji.id.toString(),
           imageUrl: emoji.image_url,
           title: emoji.prompt,
-          folderId: null, // folders not persisted in database yet
-          isLiked: emoji.isLiked, // from database join with emoji_likes
+          folderId: emoji.folder_id, // now fetched from database
+          isLiked: emoji.isLiked,
           likesCount: emoji.likes_count,
           createdAt: new Date(emoji.created_at).getTime(),
         }));
@@ -54,25 +55,25 @@ export default function Home() {
     }
   };
 
-  // Load emojis from database on mount
+  // Fetch folders from Supabase database
+  const fetchFolders = async () => {
+    try {
+      const response = await fetch('/api/folders');
+      const data = await response.json();
+      
+      if (data.success && data.folders) {
+        setFolders(data.folders);
+      }
+    } catch (error) {
+      console.error('Error fetching folders:', error);
+    }
+  };
+
+  // Load emojis and folders from database on mount
   useEffect(() => {
     fetchEmojis();
-
-    // Load folders from localStorage (will persist to database later)
-    const savedFolders = localStorage.getItem('folders');
-    if (savedFolders) {
-      try {
-        setFolders(JSON.parse(savedFolders));
-      } catch (error) {
-        console.error('Error loading folders:', error);
-      }
-    }
+    fetchFolders();
   }, []);
-
-  // Save folders to localStorage (temporary - will move to database later)
-  useEffect(() => {
-    localStorage.setItem('folders', JSON.stringify(folders));
-  }, [folders]);
 
   const handleGenerate = async (prompt: string) => {
     if (credits <= 0) {
@@ -178,33 +179,82 @@ export default function Home() {
     }
   };
 
-  const handleCreateFolder = (name: string) => {
-    const newFolder: Folder = {
-      id: Date.now().toString(),
-      name,
-      createdAt: Date.now(),
-    };
-    setFolders((prev) => [...prev, newFolder]);
+  const handleCreateFolder = async (name: string) => {
+    try {
+      const response = await fetch('/api/folders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name }),
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.folder) {
+        setFolders((prev) => [...prev, data.folder]);
+      } else {
+        alert('Failed to create folder. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error creating folder:', error);
+      alert('Failed to create folder. Please try again.');
+    }
   };
 
-  const handleRenameFolder = (id: string, newName: string) => {
-    setFolders((prev) =>
-      prev.map((folder) =>
-        folder.id === id ? { ...folder, name: newName } : folder
-      )
-    );
+  const handleRenameFolder = async (id: string, newName: string) => {
+    try {
+      const response = await fetch('/api/folders', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id, name: newName }),
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.folder) {
+        setFolders((prev) =>
+          prev.map((folder) =>
+            folder.id === id ? data.folder : folder
+          )
+        );
+      } else {
+        alert('Failed to rename folder. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error renaming folder:', error);
+      alert('Failed to rename folder. Please try again.');
+    }
   };
 
-  const handleDeleteFolder = (id: string) => {
-    // Remove folder
-    setFolders((prev) => prev.filter((folder) => folder.id !== id));
-    
-    // Move emojis from this folder to "All" (set folderId to null)
-    setEmojis((prev) =>
-      prev.map((emoji) =>
-        emoji.folderId === id ? { ...emoji, folderId: null } : emoji
-      )
-    );
+  const handleDeleteFolder = async (id: string) => {
+    try {
+      const response = await fetch(`/api/folders?id=${id}`, {
+        method: 'DELETE',
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Remove folder from state
+        setFolders((prev) => prev.filter((folder) => folder.id !== id));
+        
+        // Move emojis from this folder to "All" (set folderId to null)
+        // The database cascade will handle removing emoji_folders entries
+        setEmojis((prev) =>
+          prev.map((emoji) =>
+            emoji.folderId === id ? { ...emoji, folderId: null } : emoji
+          )
+        );
+      } else {
+        alert('Failed to delete folder. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error deleting folder:', error);
+      alert('Failed to delete folder. Please try again.');
+    }
   };
 
   const handleOpenFolderModal = (emojiId: string) => {
@@ -212,34 +262,58 @@ export default function Home() {
     setIsFolderModalOpen(true);
   };
 
-  const handleAssignEmojiToFolder = (folderId: string | null, newFolderName?: string) => {
+  const handleAssignEmojiToFolder = async (folderId: string | null, newFolderName?: string) => {
     if (!selectedEmojiId) return;
 
-    // If creating a new folder
-    if (newFolderName) {
-      const newFolder: Folder = {
-        id: Date.now().toString(),
-        name: newFolderName,
-        createdAt: Date.now(),
-      };
-      setFolders((prev) => [...prev, newFolder]);
-      
-      // Assign emoji to the new folder
-      setEmojis((prev) =>
-        prev.map((emoji) =>
-          emoji.id === selectedEmojiId ? { ...emoji, folderId: newFolder.id } : emoji
-        )
-      );
-    } else {
-      // Assign to existing folder or remove from folder (folderId = null)
-      setEmojis((prev) =>
-        prev.map((emoji) =>
-          emoji.id === selectedEmojiId ? { ...emoji, folderId } : emoji
-        )
-      );
+    try {
+      // If creating a new folder first
+      if (newFolderName) {
+        const createResponse = await fetch('/api/folders', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ name: newFolderName }),
+        });
+
+        const createData = await createResponse.json();
+
+        if (createData.success && createData.folder) {
+          setFolders((prev) => [...prev, createData.folder]);
+          folderId = createData.folder.id;
+        } else {
+          alert('Failed to create folder. Please try again.');
+          return;
+        }
+      }
+
+      // Assign emoji to folder (or remove from folder if folderId is null)
+      const response = await fetch(`/api/emojis/${selectedEmojiId}/folder`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ folderId }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Update local state
+        setEmojis((prev) =>
+          prev.map((emoji) =>
+            emoji.id === selectedEmojiId ? { ...emoji, folderId: data.folderId } : emoji
+          )
+        );
+      } else {
+        alert('Failed to assign emoji to folder. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error assigning emoji to folder:', error);
+      alert('Failed to assign emoji to folder. Please try again.');
+    } finally {
+      setSelectedEmojiId(null);
     }
-    
-    setSelectedEmojiId(null);
   };
 
   const handleImageClick = (emojiId: string) => {

@@ -21,9 +21,12 @@ export async function GET() {
       );
     }
 
-    // If user is authenticated, fetch their likes
+    // If user is authenticated, fetch their likes and folder assignments
     let userLikes: number[] = [];
+    let emojiToFolderMap: Record<number, string> = {};
+    
     if (userId) {
+      // Fetch likes
       const { data: likes, error: likesError } = await supabase
         .from('emoji_likes')
         .select('emoji_id')
@@ -32,17 +35,31 @@ export async function GET() {
       if (!likesError && likes) {
         userLikes = likes.map((like) => like.emoji_id);
       }
+
+      // Fetch folder assignments for this user
+      const { data: assignments, error: assignmentsError } = await supabase
+        .from('emoji_folders')
+        .select('emoji_id, folder_id')
+        .eq('user_id', userId);
+
+      if (!assignmentsError && assignments) {
+        emojiToFolderMap = assignments.reduce((acc, assignment) => {
+          acc[assignment.emoji_id] = assignment.folder_id;
+          return acc;
+        }, {} as Record<number, string>);
+      }
     }
 
-    // Add isLiked flag to each emoji
-    const emojisWithLikes = (emojis || []).map((emoji) => ({
+    // Add isLiked flag and folder_id to each emoji
+    const emojisWithMetadata = (emojis || []).map((emoji) => ({
       ...emoji,
       isLiked: userLikes.includes(emoji.id),
+      folder_id: emojiToFolderMap[emoji.id] || null,
     }));
 
     return NextResponse.json({ 
       success: true,
-      emojis: emojisWithLikes 
+      emojis: emojisWithMetadata 
     });
   } catch (error) {
     console.error('Error fetching emojis:', error);

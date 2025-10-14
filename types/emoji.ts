@@ -1,7 +1,8 @@
 export interface Folder {
-  id: string;
+  id: string; // UUID from database
   name: string;
-  createdAt: number;
+  user_id: string;
+  created_at: string; // ISO timestamp from database
 }
 
 export interface Emoji {
