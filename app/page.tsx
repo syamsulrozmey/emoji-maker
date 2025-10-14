@@ -10,10 +10,9 @@ import { AddFolderDialog } from '@/components/add-folder-dialog';
 import { FolderModal } from '@/components/folder-modal';
 import { ImageLightboxModal } from '@/components/image-lightbox-modal';
 import { Emoji, Folder } from '@/types/emoji';
-import { syncUserProfile } from '@/lib/profile-sync';
 
 export default function Home() {
-  const { isLoaded, isSignedIn, user } = useUser();
+  const { isLoaded, isSignedIn } = useUser();
   const [emojis, setEmojis] = useState<Emoji[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -24,7 +23,6 @@ export default function Home() {
   const [selectedEmojiId, setSelectedEmojiId] = useState<string | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxEmojiId, setLightboxEmojiId] = useState<string | null>(null);
-  const [profileSynced, setProfileSynced] = useState(false);
 
   // Fetch emojis from Supabase database
   const fetchEmojis = async () => {
@@ -73,46 +71,14 @@ export default function Home() {
     }
   };
 
-  // Sync user profile on mount (ensures profile exists in Supabase)
+  // Load emojis and folders from database when user is authenticated
+  // Profile creation is now handled automatically by middleware
   useEffect(() => {
-    const initializeProfile = async () => {
-      // Wait for Clerk to load
-      if (!isLoaded) return;
-      
-      // Only sync if user is signed in and we haven't synced yet
-      if (isSignedIn && user && !profileSynced) {
-        console.log('Syncing user profile...');
-        const result = await syncUserProfile();
-        
-        if (result.success) {
-          setProfileSynced(true);
-          
-          // Update credits from synced profile
-          if (result.profile) {
-            setCredits(result.profile.credits);
-          }
-          
-          if (result.created) {
-            console.log('✅ New profile created for user');
-          } else {
-            console.log('✅ Profile already exists');
-          }
-        } else {
-          console.error('❌ Failed to sync profile:', result.error);
-        }
-      }
-    };
-
-    initializeProfile();
-  }, [isLoaded, isSignedIn, user, profileSynced]);
-
-  // Load emojis and folders from database after profile is synced
-  useEffect(() => {
-    if (profileSynced) {
+    if (isLoaded && isSignedIn) {
       fetchEmojis();
       fetchFolders();
     }
-  }, [profileSynced]);
+  }, [isLoaded, isSignedIn]);
 
   const handleGenerate = async (prompt: string) => {
     if (credits <= 0) {
