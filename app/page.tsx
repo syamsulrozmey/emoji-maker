@@ -17,7 +17,7 @@ export default function Home() {
   const [folders, setFolders] = useState<Folder[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('All');
-  const [credits, setCredits] = useState(5);
+  const [credits, setCredits] = useState(0);
   const [isAddFolderDialogOpen, setIsAddFolderDialogOpen] = useState(false);
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
   const [selectedEmojiId, setSelectedEmojiId] = useState<string | null>(null);
@@ -71,12 +71,27 @@ export default function Home() {
     }
   };
 
-  // Load emojis and folders from database when user is authenticated
+  // Fetch user's current credits from Supabase
+  const fetchCredits = async () => {
+    try {
+      const response = await fetch('/api/profile/credits');
+      const data = await response.json();
+      
+      if (data.success && typeof data.credits === 'number') {
+        setCredits(data.credits);
+      }
+    } catch (error) {
+      console.error('Error fetching credits:', error);
+    }
+  };
+
+  // Load emojis, folders, and credits from database when user is authenticated
   // Profile creation is now handled automatically by middleware
   useEffect(() => {
     if (isLoaded && isSignedIn) {
       fetchEmojis();
       fetchFolders();
+      fetchCredits();
     }
   }, [isLoaded, isSignedIn]);
 
@@ -102,7 +117,7 @@ export default function Home() {
 
       const data = await response.json();
       
-      // API now returns { success: true, emoji: { id, imageUrl, prompt, ... } }
+      // API now returns { success: true, emoji: { id, imageUrl, prompt, ... }, credits: number }
       if (data.success && data.emoji) {
         const newEmoji: Emoji = {
           id: data.emoji.id.toString(),
@@ -116,7 +131,11 @@ export default function Home() {
 
         // Add new emoji to the top of the grid
         setEmojis((prev) => [newEmoji, ...prev]);
-        setCredits((prev) => Math.max(0, prev - 1));
+        
+        // Update credits with server-returned value
+        if (typeof data.credits === 'number') {
+          setCredits(data.credits);
+        }
       }
     } catch (error) {
       console.error('Error generating emoji:', error);

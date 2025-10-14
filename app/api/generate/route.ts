@@ -11,6 +11,29 @@ interface ReplicateOutput {
   url: () => string | URL;
 }
 
+/**
+ * Checks if the last credit reset was before today (UTC)
+ */
+function shouldResetCredits(lastResetDate: string): boolean {
+  const lastReset = new Date(lastResetDate);
+  const now = new Date();
+  
+  // Convert both dates to UTC and compare only the date part
+  const lastResetUTC = new Date(Date.UTC(
+    lastReset.getUTCFullYear(),
+    lastReset.getUTCMonth(),
+    lastReset.getUTCDate()
+  ));
+  
+  const nowUTC = new Date(Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate()
+  ));
+  
+  return lastResetUTC < nowUTC;
+}
+
 export async function POST(request: NextRequest) {
   try {
     // Get authenticated user from Clerk
@@ -29,6 +52,52 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Prompt is required' },
         { status: 400 }
+      );
+    }
+
+    // Check user's credits before generating
+    const { data: profile, error: fetchError } = await supabase
+      .from('profiles')
+      .select('user_id, credits, tier, last_credit_reset')
+      .eq('user_id', userId)
+      .single();
+
+    if (fetchError || !profile) {
+      console.error('Error fetching profile:', fetchError);
+      return NextResponse.json(
+        { error: 'Profile not found. Please refresh the page.' },
+        { status: 404 }
+      );
+    }
+
+    let currentCredits = profile.credits;
+
+    // Daily refresh logic for free tier users
+    if (profile.tier === 'free' && shouldResetCredits(profile.last_credit_reset)) {
+      // Reset credits to 3 for free tier users
+      const { data: updatedProfile, error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          credits: 3,
+          last_credit_reset: new Date().toISOString(),
+        })
+        .eq('user_id', userId)
+        .select('credits')
+        .single();
+
+      if (updateError) {
+        console.error('Error resetting daily credits:', updateError);
+      } else {
+        currentCredits = updatedProfile.credits;
+        console.log(`✅ Daily credits reset for user: ${userId}`);
+      }
+    }
+
+    // Check if user has enough credits
+    if (currentCredits <= 0) {
+      return NextResponse.json(
+        { error: 'Insufficient credits. Please upgrade or wait for your daily reset.' },
+        { status: 403 }
       );
     }
 
@@ -104,7 +173,22 @@ export async function POST(request: NextRequest) {
       throw new Error('Failed to save emoji to database');
     }
 
-    // Step 6: Return success response with complete emoji data
+    // Step 6: Deduct 1 credit from user's profile
+    const { data: updatedProfile, error: creditError } = await supabase
+      .from('profiles')
+      .update({ credits: currentCredits - 1 })
+      .eq('user_id', userId)
+      .select('credits')
+      .single();
+
+    if (creditError) {
+      console.error('Error deducting credit:', creditError);
+      // Continue anyway - emoji was generated successfully
+    }
+
+    const newCredits = updatedProfile?.credits ?? currentCredits - 1;
+
+    // Step 7: Return success response with complete emoji data and updated credits
     return NextResponse.json({
       success: true,
       emoji: {
@@ -115,6 +199,7 @@ export async function POST(request: NextRequest) {
         likesCount: emojiData.likes_count,
         createdAt: emojiData.created_at,
       },
+      credits: newCredits,
     });
   } catch (error) {
     console.error('Error generating emoji:', error);

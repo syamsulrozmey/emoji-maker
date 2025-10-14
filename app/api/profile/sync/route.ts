@@ -38,6 +38,7 @@ export async function POST() {
           user_id: userId,
           credits: 3,
           tier: 'free',
+          last_credit_reset: new Date().toISOString(),
         })
         .select()
         .single();

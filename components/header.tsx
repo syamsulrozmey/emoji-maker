@@ -8,7 +8,7 @@ interface HeaderProps {
   credits?: number;
 }
 
-export function Header({ credits = 5 }: HeaderProps) {
+export function Header({ credits = 0 }: HeaderProps) {
   return (
     <header className="w-full flex items-center justify-between py-4 px-6">
       <div className="flex items-center gap-2">
