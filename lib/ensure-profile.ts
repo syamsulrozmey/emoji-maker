@@ -39,9 +39,9 @@ export async function ensureUserProfile(userId: string): Promise<Profile> {
         .from('profiles')
         .insert({
           user_id: userId,
-          credits: 3,
+          credits: 5,
           tier: 'free',
-          last_credit_reset: new Date().toISOString(),
+          subscription_status: 'trial',
         })
         .select()
         .single();
@@ -55,7 +55,24 @@ export async function ensureUserProfile(userId: string): Promise<Profile> {
         throw new Error('Profile creation returned no data');
       }
 
-      console.log(`✅ Profile created for user: ${userId}`);
+      // Create initial trial credit record in user_credits table
+      const { error: creditError } = await supabase
+        .from('user_credits')
+        .insert({
+          user_id: userId,
+          credits_allocated: 5,
+          credits_remaining: 5,
+          purchase_type: 'trial',
+          expiry_date: null, // Trial credits never expire
+        });
+
+      if (creditError) {
+        console.error('Error creating trial credits:', creditError);
+        // Don't throw - profile was created successfully
+        // User can still use the app, just might have credit issues
+      }
+
+      console.log(`✅ Profile created for user: ${userId} with 5 trial credits`);
       return newProfile;
     }
 

@@ -13,6 +13,10 @@ export interface Emoji {
   isLiked?: boolean;
   likesCount?: number;
   createdAt?: number;
+  isPublic?: boolean;
+  hasWatermark?: boolean;
+  sharesCount?: number;
+  creditsUsed?: number;
 }
 
 export interface GenerateEmojiResponse {

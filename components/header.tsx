@@ -6,9 +6,10 @@ import { Button } from './ui/button';
 
 interface HeaderProps {
   credits?: number;
+  onUpgradeClick?: () => void;
 }
 
-export function Header({ credits = 0 }: HeaderProps) {
+export function Header({ credits = 0, onUpgradeClick }: HeaderProps) {
   return (
     <header className="w-full flex items-center justify-between py-4 px-6">
       <div className="flex items-center gap-2">
@@ -35,10 +36,13 @@ export function Header({ credits = 0 }: HeaderProps) {
         </Button>
         
         <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-          <span>{credits} credits left</span>
+          <span>{credits} credit{credits !== 1 ? 's' : ''} left</span>
         </div>
         
-        <Button className="bg-gray-900 hover:bg-gray-800 text-white rounded-lg px-6">
+        <Button 
+          onClick={onUpgradeClick}
+          className="bg-gray-900 hover:bg-gray-800 text-white rounded-lg px-6"
+        >
           Upgrade
         </Button>
         

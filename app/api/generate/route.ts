@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { auth, clerkClient } from '@clerk/nextjs/server';
 import Replicate from 'replicate';
+import sharp from 'sharp';
 import { supabase } from '@/lib/supabase';
+import { deductCredit } from '@/lib/credits';
 
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
@@ -9,29 +11,6 @@ const replicate = new Replicate({
 
 interface ReplicateOutput {
   url: () => string | URL;
-}
-
-/**
- * Checks if the last credit reset was before today (UTC)
- */
-function shouldResetCredits(lastResetDate: string): boolean {
-  const lastReset = new Date(lastResetDate);
-  const now = new Date();
-  
-  // Convert both dates to UTC and compare only the date part
-  const lastResetUTC = new Date(Date.UTC(
-    lastReset.getUTCFullYear(),
-    lastReset.getUTCMonth(),
-    lastReset.getUTCDate()
-  ));
-  
-  const nowUTC = new Date(Date.UTC(
-    now.getUTCFullYear(),
-    now.getUTCMonth(),
-    now.getUTCDate()
-  ));
-  
-  return lastResetUTC < nowUTC;
 }
 
 export async function POST(request: NextRequest) {
@@ -58,7 +37,7 @@ export async function POST(request: NextRequest) {
     // Check user's credits before generating
     const { data: profile, error: fetchError } = await supabase
       .from('profiles')
-      .select('user_id, credits, tier, last_credit_reset')
+      .select('user_id, credits, tier, subscription_status')
       .eq('user_id', userId)
       .single();
 
@@ -70,33 +49,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let currentCredits = profile.credits;
-
-    // Daily refresh logic for free tier users
-    if (profile.tier === 'free' && shouldResetCredits(profile.last_credit_reset)) {
-      // Reset credits to 3 for free tier users
-      const { data: updatedProfile, error: updateError } = await supabase
-        .from('profiles')
-        .update({
-          credits: 3,
-          last_credit_reset: new Date().toISOString(),
-        })
-        .eq('user_id', userId)
-        .select('credits')
-        .single();
-
-      if (updateError) {
-        console.error('Error resetting daily credits:', updateError);
-      } else {
-        currentCredits = updatedProfile.credits;
-        console.log(`✅ Daily credits reset for user: ${userId}`);
-      }
-    }
-
     // Check if user has enough credits
-    if (currentCredits <= 0) {
+    if (profile.credits <= 0) {
       return NextResponse.json(
-        { error: 'Insufficient credits. Please upgrade or wait for your daily reset.' },
+        { error: 'Insufficient credits. Please upgrade to continue generating emojis.' },
         { status: 403 }
       );
     }
@@ -134,12 +90,31 @@ export async function POST(request: NextRequest) {
     const imageBlob = await imageResponse.blob();
     const imageBuffer = await imageBlob.arrayBuffer();
 
-    // Step 3: Upload to Supabase storage
+    // Step 3: Embed metadata in PNG using Sharp
+    // Fetch user info for metadata
+    const clerk = await clerkClient();
+    const user = await clerk.users.getUser(userId);
+    const username = user.username || user.firstName || user.emailAddresses[0]?.emailAddress || 'Anonymous';
+
+    const imageWithMetadata = await sharp(Buffer.from(imageBuffer))
+      .withMetadata({
+        exif: {
+          IFD0: {
+            ImageDescription: `Prompt: ${prompt}`,
+            Copyright: `Created by ${username} on Emoji Maker - ${new Date().toISOString()}`,
+            Software: 'Emoji Maker - AI-Powered Emoji Generator',
+          }
+        }
+      })
+      .png()
+      .toBuffer();
+
+    // Step 4: Upload to Supabase storage with metadata embedded
     const fileName = `${userId}/${Date.now()}-${crypto.randomUUID()}.png`;
     
     const { error: uploadError } = await supabase.storage
       .from('emojis')
-      .upload(fileName, imageBuffer, {
+      .upload(fileName, imageWithMetadata, {
         contentType: 'image/png',
         upsert: false,
       });
@@ -149,12 +124,12 @@ export async function POST(request: NextRequest) {
       throw new Error('Failed to upload image to storage');
     }
 
-    // Step 4: Get public URL from Supabase
+    // Step 5: Get public URL from Supabase
     const { data: { publicUrl } } = supabase.storage
       .from('emojis')
       .getPublicUrl(fileName);
 
-    // Step 5: Insert emoji metadata into database
+    // Step 6: Insert emoji metadata into database
     const { data: emojiData, error: insertError } = await supabase
       .from('emojis')
       .insert({
@@ -162,6 +137,9 @@ export async function POST(request: NextRequest) {
         prompt: prompt,
         creator_user_id: userId,
         likes_count: 0,
+        is_public: false,
+        has_watermark: false,
+        credits_used: 1,
       })
       .select()
       .single();
@@ -173,22 +151,17 @@ export async function POST(request: NextRequest) {
       throw new Error('Failed to save emoji to database');
     }
 
-    // Step 6: Deduct 1 credit from user's profile
-    const { data: updatedProfile, error: creditError } = await supabase
-      .from('profiles')
-      .update({ credits: currentCredits - 1 })
-      .eq('user_id', userId)
-      .select('credits')
-      .single();
-
-    if (creditError) {
+    // Step 7: Deduct 1 credit using the new credit system
+    let newCredits: number;
+    try {
+      newCredits = await deductCredit(userId);
+    } catch (creditError) {
       console.error('Error deducting credit:', creditError);
-      // Continue anyway - emoji was generated successfully
+      // Use fallback - subtract from profile credits directly
+      newCredits = Math.max(0, profile.credits - 1);
     }
 
-    const newCredits = updatedProfile?.credits ?? currentCredits - 1;
-
-    // Step 7: Return success response with complete emoji data and updated credits
+    // Step 8: Return success response with complete emoji data and updated credits
     return NextResponse.json({
       success: true,
       emoji: {

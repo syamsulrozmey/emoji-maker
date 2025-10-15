@@ -9,6 +9,7 @@ import { EmojiGrid } from '@/components/emoji-grid';
 import { AddFolderDialog } from '@/components/add-folder-dialog';
 import { FolderModal } from '@/components/folder-modal';
 import { ImageLightboxModal } from '@/components/image-lightbox-modal';
+import { UpgradeModal } from '@/components/upgrade-modal';
 import { Emoji, Folder } from '@/types/emoji';
 
 export default function Home() {
@@ -23,6 +24,7 @@ export default function Home() {
   const [selectedEmojiId, setSelectedEmojiId] = useState<string | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxEmojiId, setLightboxEmojiId] = useState<string | null>(null);
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
   // Fetch emojis from Supabase database
   const fetchEmojis = async () => {
@@ -97,7 +99,7 @@ export default function Home() {
 
   const handleGenerate = async (prompt: string) => {
     if (credits <= 0) {
-      alert('You have no credits left. Please upgrade to continue.');
+      setIsUpgradeModalOpen(true);
       return;
     }
 
@@ -364,7 +366,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header credits={credits} />
+      <Header credits={credits} onUpgradeClick={() => setIsUpgradeModalOpen(true)} />
       
       <main className="max-w-7xl mx-auto px-6 py-12">
         <div className="mb-16">
@@ -424,6 +426,12 @@ export default function Home() {
           folders={folders}
         />
       )}
+
+      <UpgradeModal
+        isOpen={isUpgradeModalOpen}
+        onClose={() => setIsUpgradeModalOpen(false)}
+        currentCredits={credits}
+      />
     </div>
   );
 }

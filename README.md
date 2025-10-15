@@ -1,81 +1,191 @@
-# 🎨 Emoji Maker
+# 🎨 Emoji Maker - AI-Powered Emoji SaaS
 
-Generate custom emojis using AI-powered text-to-image generation with Replicate's SDXL Emoji model.
+Generate custom emojis using AI-powered text-to-image generation with Replicate's SDXL Emoji model. A complete SaaS platform with credit-based monetization, Stripe payment integration, and user authentication.
 
 ![Emoji Maker](requirements/Mockup.png)
 
 ## ✨ Features
 
+### Core Features
 - 🤖 **AI-Powered Generation**: Create custom emojis from text prompts using Replicate's SDXL Emoji model
-- 💾 **Persistent Storage**: All generated emojis are saved locally using localStorage
-- ❤️ **Like System**: Mark your favorite emojis
-- 📥 **Download**: Download any emoji as a PNG file
-- 🏷️ **Filtering**: Organize emojis by categories (All, Animals, Cars)
-- 🎭 **Beautiful UI**: Clean, minimalist design with smooth animations
+- 💾 **Cloud Storage**: All generated emojis stored in Supabase with metadata
+- ❤️ **Like System**: Mark and track your favorite emojis
+- 📥 **Download with Metadata**: Download emojis as PNG files with embedded metadata (prompt, author, copyright)
+- 📁 **Folder Organization**: Create and manage custom folders to organize your emojis
+- 🎭 **Beautiful UI**: Clean, minimalist design with smooth animations built with shadcn/ui
 - 📱 **Responsive**: Works seamlessly on desktop and mobile devices
+
+### SaaS Features
+- 💳 **Stripe Payment Integration**: One-time purchases and subscriptions
+- 🎟️ **Credit System**: Trial credits (5 free) + paid tiers
+- 👤 **User Authentication**: Secure authentication with Clerk
+- 📊 **Credit Tracking**: Detailed purchase history and credit allocations
+- 🔄 **Subscription Management**: Monthly renewals with Stripe Customer Portal
+- 🔒 **Secure Webhooks**: Validated Stripe webhook handling
+
+## 💰 Pricing Tiers
+
+### Free Trial
+- **5 credits** (one-time, non-renewing)
+- PNG export with metadata
+- Personal and commercial use
+
+### Starter Pack - $4.99
+- **30 credits**
+- PNG export with metadata
+- Share to public gallery (coming soon)
+- Priority email support
+
+### Pro Pack - $9.99
+- **75 credits**
+- PNG export with metadata
+- Batch generation (coming soon)
+- Public gallery with analytics (coming soon)
+- Custom style/prompt library (coming soon)
+- Priority support
+
+### Pro Monthly - $3.99/month
+- **15 credits per month**
+- PNG export with metadata
+- Share to public gallery (coming soon)
+- Auto-renews monthly
+- Priority support
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
 - Node.js 18+ installed
-- A Replicate API account and token
+- A [Replicate](https://replicate.com) API account and token
+- A [Supabase](https://supabase.com) project
+- A [Clerk](https://clerk.com) application for authentication
+- A [Stripe](https://stripe.com) account for payment processing
 
 ### Installation
 
-1. Clone the repository:
+1. **Clone the repository:**
 ```bash
 cd emoji-maker
 ```
 
-2. Install dependencies:
+2. **Install dependencies:**
 ```bash
 npm install
 ```
 
-3. Set up your environment variables:
+3. **Set up environment variables:**
 ```bash
 cp .env.example .env.local
 ```
 
-4. Add your Replicate API token to `.env.local`:
+Edit `.env.local` and add your API keys:
+
 ```env
-REPLICATE_API_TOKEN=r8_your_actual_token_here
+# Replicate
+REPLICATE_API_TOKEN=r8_your_token_here
+
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Clerk
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
+CLERK_SECRET_KEY=your_clerk_secret_key
+
+# Stripe
+STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key
+STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret
+
+# Stripe Price IDs (create in Stripe Dashboard)
+STRIPE_STARTER_PACK_PRICE_ID=price_xxxxx
+STRIPE_PRO_PACK_PRICE_ID=price_xxxxx
+STRIPE_PRO_MONTHLY_PRICE_ID=price_xxxxx
+
+# App URL
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-Get your API token from [Replicate Account Settings](https://replicate.com/account/api-tokens)
+4. **Set up Supabase database:**
+   - Open your Supabase project SQL Editor
+   - Run the migration file: `supabase_saas_migration.sql`
+   - This creates all necessary tables and indexes
 
-5. Run the development server:
+5. **Set up Stripe:**
+   - Follow the complete guide in [STRIPE_SETUP.md](./STRIPE_SETUP.md)
+   - Create products and get Price IDs
+   - Set up webhook forwarding
+
+6. **Run the development server:**
 ```bash
 npm run dev
 ```
 
-6. Open [http://localhost:3000](http://localhost:3000) in your browser
+7. **In another terminal, forward Stripe webhooks:**
+```bash
+stripe listen --forward-to localhost:3000/api/stripe/webhook
+```
+
+8. **Open your browser:**
+   - Navigate to [http://localhost:3000](http://localhost:3000)
+   - Sign up with Clerk
+   - Start generating emojis!
 
 ## 🎯 Usage
 
-1. **Generate an Emoji**:
-   - Enter a text prompt describing the emoji you want (e.g., "Astro cat surfing")
+### For Users
+
+1. **Sign Up**:
+   - Create an account using Clerk authentication
+   - Get 5 free trial credits automatically
+
+2. **Generate Emojis**:
+   - Enter a text prompt (e.g., "Astro cat surfing")
    - Click "Generate custom emoji"
-   - Wait for the AI to create your emoji
+   - Each generation costs 1 credit
 
-2. **Interact with Emojis**:
-   - Hover over any emoji to reveal action buttons
-   - Click the download icon to save the emoji
-   - Click the heart icon to like/unlike
+3. **Organize Your Emojis**:
+   - Create folders to organize your emojis
+   - Assign emojis to folders
+   - Filter by folder in the tabs
 
-3. **Filter Emojis**:
-   - Use the tabs (All, Animals, Cars) to filter your generated emojis
-   - Click "Add folder" to create custom categories (coming soon)
+4. **Download Emojis**:
+   - Click the download button on any emoji
+   - PNG includes embedded metadata (prompt, author, copyright)
+
+5. **Upgrade for More Credits**:
+   - Click the "Upgrade" button
+   - Choose a pricing tier
+   - Complete payment with Stripe
+   - Credits are added automatically
+
+6. **Manage Subscription** (Pro Monthly users):
+   - Access Stripe Customer Portal from settings
+   - Update payment method or cancel subscription
+
+### Credit System
+
+- **Trial**: 5 free credits (one-time)
+- **Credits deduct**: 1 credit per emoji generation
+- **No expiration**: Credits never expire (except monthly subscription)
+- **Purchase history**: View all credit allocations in your account
 
 ## 🛠️ Tech Stack
 
+### Frontend
 - **Framework**: [Next.js 15](https://nextjs.org/) with App Router
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS 4
 - **UI Components**: [shadcn/ui](https://ui.shadcn.com/)
 - **Icons**: [Lucide React](https://lucide.dev/)
+
+### Backend & Services
 - **AI Model**: [Replicate SDXL Emoji](https://replicate.com/fofr/sdxl-emoji)
+- **Database**: [Supabase](https://supabase.com) (PostgreSQL)
+- **Authentication**: [Clerk](https://clerk.com)
+- **Payments**: [Stripe](https://stripe.com)
+- **Image Processing**: [Sharp](https://sharp.pixelplumbing.com/)
+- **Storage**: Supabase Storage
 
 ## 📁 Project Structure
 
@@ -124,7 +234,20 @@ Individual emoji display with hover effects revealing download and like buttons.
 
 | Variable | Description | Required |
 |----------|-------------|----------|
-| `REPLICATE_API_TOKEN` | Your Replicate API token | Yes |
+| `REPLICATE_API_TOKEN` | Replicate API token for AI generation | Yes |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL | Yes |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key | Yes |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key | Yes |
+| `CLERK_SECRET_KEY` | Clerk secret key | Yes |
+| `STRIPE_SECRET_KEY` | Stripe secret key | Yes |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key | Yes |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret | Yes |
+| `STRIPE_STARTER_PACK_PRICE_ID` | Stripe Price ID for Starter Pack | Yes |
+| `STRIPE_PRO_PACK_PRICE_ID` | Stripe Price ID for Pro Pack | Yes |
+| `STRIPE_PRO_MONTHLY_PRICE_ID` | Stripe Price ID for Pro Monthly | Yes |
+| `NEXT_PUBLIC_APP_URL` | Your app URL (for redirects) | Yes |
+
+See `.env.example` for a complete template.
 
 ## 📝 API Routes
 
@@ -162,16 +285,86 @@ Click the download button on any emoji to save it as a PNG file to your device.
 ### Like System
 Mark your favorite emojis with the heart button. Liked emojis are saved locally.
 
+## 📊 Database Schema
+
+The application uses the following main tables:
+
+- **profiles**: User accounts with credit balance and subscription status
+- **user_credits**: Granular credit allocations with purchase tracking
+- **emojis**: Generated emoji metadata and storage URLs
+- **stripe_transactions**: Payment transaction records
+- **folders**: User-created folders for organization
+- **emoji_folders**: Junction table for emoji-folder assignments
+- **emoji_likes**: User likes on emojis
+
+See `supabase_saas_migration.sql` for the complete schema.
+
 ## 🚧 Future Enhancements
 
-- [ ] User authentication with Clerk
-- [ ] Database integration with Supabase
-- [ ] Custom folder creation
-- [ ] Emoji sharing functionality
+- [x] User authentication with Clerk
+- [x] Database integration with Supabase
+- [x] Custom folder creation
+- [x] Stripe payment integration
+- [x] Credit system with purchase history
+- [x] PNG metadata embedding
+- [ ] Public gallery for sharing emojis
+- [ ] Batch generation (3-5 variations per prompt)
+- [ ] Custom style/prompt saved library
 - [ ] Emoji editing and variants
-- [ ] Export multiple emojis at once
+- [ ] Advanced analytics dashboard
 - [ ] Search functionality
-- [ ] Advanced filtering options
+- [ ] Export multiple emojis at once
+
+## 🧪 Testing
+
+### Test Payment Flow
+
+Use Stripe test cards:
+- **Success**: `4242 4242 4242 4242`
+- **Requires Auth**: `4000 0025 0000 3155`
+- **Declined**: `4000 0000 0000 0002`
+
+See [STRIPE_SETUP.md](./STRIPE_SETUP.md) for complete testing guide.
+
+### Database Testing
+
+After migration, verify:
+1. New users get 5 trial credits
+2. Credits deduct properly on generation
+3. Payments add credits correctly
+4. Subscription renewals work
+
+## 🚀 Deployment
+
+### Before Production
+
+1. ✅ Run database migration in Supabase
+2. ✅ Switch Stripe to live mode
+3. ✅ Create live Stripe products and prices
+4. ✅ Set up production webhook endpoint
+5. ✅ Update all environment variables
+6. ✅ Test payment flow end-to-end
+7. ✅ Set up Replicate budget alerts ($5/day limit)
+
+### Recommended Platforms
+
+- **Frontend**: Vercel, Netlify
+- **Database**: Supabase (already hosted)
+- **Monitoring**: Sentry, LogRocket
+
+## 📝 Important Notes
+
+### Budget Management
+- **Replicate Cost**: ~$0.0075 per emoji generation
+- **Daily Budget**: $5/day = ~667 generations
+- **Trial Cost**: $0.0375 per user (5 credits)
+- **Max Trial Users/Day**: ~130 users
+
+### Security
+- Always verify Stripe webhook signatures
+- Never expose secret keys in frontend
+- Use HTTPS in production
+- Enable Stripe Radar for fraud prevention
 
 ## 📄 License
 
@@ -180,5 +373,14 @@ This project is open source and available under the MIT License.
 ## 🙏 Acknowledgments
 
 - [Replicate](https://replicate.com/) for the SDXL Emoji model
-- [shadcn/ui](https://ui.shadcn.com/) for the beautiful UI components
+- [Stripe](https://stripe.com/) for payment infrastructure
+- [Clerk](https://clerk.com/) for authentication
+- [Supabase](https://supabase.com/) for database and storage
+- [shadcn/ui](https://ui.shadcn.com/) for beautiful UI components
 - [Next.js](https://nextjs.org/) team for the amazing framework
+
+## 📞 Support
+
+- Check [STRIPE_SETUP.md](./STRIPE_SETUP.md) for payment setup
+- Review [requirements/emoji_saas_requirements.md](./requirements/emoji_saas_requirements.md) for specifications
+- Open an issue for bugs or feature requests
