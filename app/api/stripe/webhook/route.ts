@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase';
 import { addCredits } from '@/lib/credits';
 import { getCreditsForTier, getPurchaseType, PricingTier } from '@/lib/pricing';
 import Stripe from 'stripe';
@@ -105,7 +105,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   }
 
   // Check if transaction already processed (idempotency)
-  const { data: existingTransaction } = await supabase
+  const { data: existingTransaction } = await supabaseAdmin
     .from('stripe_transactions')
     .select('id')
     .eq('stripe_payment_id', paymentId)
@@ -117,7 +117,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   }
 
   // Create transaction record
-  const { error: transactionError } = await supabase
+  const { error: transactionError } = await supabaseAdmin
     .from('stripe_transactions')
     .insert({
       user_id: userId,
@@ -138,11 +138,11 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const purchaseType = getPurchaseType(tier);
   const subscriptionId = session.subscription as string | undefined;
 
-  await addCredits(userId, creditsToAdd, purchaseType, paymentId, subscriptionId);
+  await addCredits(userId, creditsToAdd, purchaseType, paymentId, subscriptionId, true);
 
   // Update profile subscription status if it's a subscription
   if (tier === 'pro_monthly') {
-    await supabase
+    await supabaseAdmin
       .from('profiles')
       .update({
         subscription_status: 'active',
@@ -181,7 +181,7 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
   }
 
   // Check if already processed
-  const { data: existingTransaction } = await supabase
+  const { data: existingTransaction } = await supabaseAdmin
     .from('stripe_transactions')
     .select('id')
     .eq('stripe_payment_id', invoice.payment_intent as string)
@@ -197,7 +197,7 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
   const tier = 'pro_monthly';
 
   // Create transaction record
-  await supabase
+  await supabaseAdmin
     .from('stripe_transactions')
     .insert({
       user_id: userId,
@@ -210,7 +210,7 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
     });
 
   // Add credits
-  await addCredits(userId, creditsToAdd, 'subscription_monthly', invoice.payment_intent as string, subscriptionId);
+  await addCredits(userId, creditsToAdd, 'subscription_monthly', invoice.payment_intent as string, subscriptionId, true);
 
   console.log(`✅ Subscription renewal: ${creditsToAdd} credits added for user ${userId}`);
 }
@@ -227,7 +227,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   }
 
   // Update profile subscription status
-  await supabase
+  await supabaseAdmin
     .from('profiles')
     .update({
       subscription_status: 'cancelled',
@@ -256,7 +256,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     status = 'expired';
   }
 
-  await supabase
+  await supabaseAdmin
     .from('profiles')
     .update({ subscription_status: status })
     .eq('user_id', userId);

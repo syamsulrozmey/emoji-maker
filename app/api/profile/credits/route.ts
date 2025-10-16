@@ -34,10 +34,19 @@ export async function GET() {
       );
     }
 
+    // Get most recent tier from transactions
+    const { data: latestTransaction } = await supabase
+      .from('stripe_transactions')
+      .select('tier_purchased')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
     return NextResponse.json({
       success: true,
       credits: profile.credits,
-      tier: profile.tier,
+      tier: latestTransaction?.tier_purchased || profile.tier || null,
       subscription_status: profile.subscription_status,
     });
   } catch (error) {

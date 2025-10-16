@@ -19,6 +19,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('All');
   const [credits, setCredits] = useState(0);
+  const [currentTier, setCurrentTier] = useState<string | null>(null);
   const [isAddFolderDialogOpen, setIsAddFolderDialogOpen] = useState(false);
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
   const [selectedEmojiId, setSelectedEmojiId] = useState<string | null>(null);
@@ -81,19 +82,61 @@ export default function Home() {
       
       if (data.success && typeof data.credits === 'number') {
         setCredits(data.credits);
+        setCurrentTier(data.tier || null);
+        
+        // Close upgrade modal if user now has credits (only during payment polling)
+        if (data.credits > 0 && isUpgradeModalOpen) {
+          setIsUpgradeModalOpen(false);
+        }
       }
     } catch (error) {
       console.error('Error fetching credits:', error);
     }
   };
 
+  // Handle successful payment return with credit polling
+  const handlePaymentSuccess = async () => {
+    // Remove success param from URL
+    window.history.replaceState({}, '', '/');
+    
+    // Show loading state
+    setIsLoading(true);
+    
+    // Poll for credit updates (webhook might still be processing)
+    let attempts = 0;
+    const maxAttempts = 10;
+    const pollInterval = 1000; // 1 second
+    
+    const pollCredits = async () => {
+      await fetchCredits();
+      attempts++;
+      
+      if (attempts < maxAttempts) {
+        setTimeout(pollCredits, pollInterval);
+      } else {
+        setIsLoading(false);
+        // Also load emojis and folders
+        fetchEmojis();
+        fetchFolders();
+      }
+    };
+    
+    await pollCredits();
+  };
+
   // Load emojis, folders, and credits from database when user is authenticated
   // Profile creation is now handled automatically by middleware
   useEffect(() => {
     if (isLoaded && isSignedIn) {
-      fetchEmojis();
-      fetchFolders();
-      fetchCredits();
+      // Check if returning from successful payment
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('success') === 'true') {
+        handlePaymentSuccess();
+      } else {
+        fetchEmojis();
+        fetchFolders();
+        fetchCredits();
+      }
     }
   }, [isLoaded, isSignedIn]);
 
@@ -431,6 +474,7 @@ export default function Home() {
         isOpen={isUpgradeModalOpen}
         onClose={() => setIsUpgradeModalOpen(false)}
         currentCredits={credits}
+        currentTier={currentTier}
       />
     </div>
   );

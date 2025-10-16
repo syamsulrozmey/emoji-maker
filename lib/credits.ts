@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase, supabaseAdmin } from './supabase';
 
 /**
  * Credit Management Utility
@@ -123,6 +123,7 @@ export async function deductCredit(userId: string): Promise<number> {
  * @param purchaseType - Type of purchase ('trial', 'one_time_starter', etc.)
  * @param stripePaymentId - Optional Stripe payment ID for tracking
  * @param stripeSubscriptionId - Optional Stripe subscription ID for recurring payments
+ * @param bypassRLS - If true, uses admin client to bypass RLS (for webhooks)
  * @returns New total credit balance
  */
 export async function addCredits(
@@ -130,11 +131,15 @@ export async function addCredits(
   amount: number,
   purchaseType: 'trial' | 'one_time_starter' | 'one_time_pro' | 'subscription_monthly',
   stripePaymentId?: string,
-  stripeSubscriptionId?: string
+  stripeSubscriptionId?: string,
+  bypassRLS: boolean = false
 ): Promise<number> {
   try {
+    // Use admin client if bypassing RLS (webhooks), otherwise use regular client
+    const client = bypassRLS ? supabaseAdmin : supabase;
+
     // Create new credit allocation
-    const { error: insertError } = await supabase
+    const { error: insertError } = await client
       .from('user_credits')
       .insert({
         user_id: userId,
@@ -155,7 +160,7 @@ export async function addCredits(
     const newTotal = await getTotalAvailableCredits(userId);
 
     // Update profiles table with new total
-    const { error: profileError } = await supabase
+    const { error: profileError } = await client
       .from('profiles')
       .update({ credits: newTotal })
       .eq('user_id', userId);

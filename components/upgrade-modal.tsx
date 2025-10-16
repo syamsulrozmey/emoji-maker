@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Check, Sparkles } from 'lucide-react';
@@ -11,9 +10,10 @@ interface UpgradeModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentCredits?: number;
+  currentTier?: string | null;
 }
 
-export function UpgradeModal({ isOpen, onClose, currentCredits = 0 }: UpgradeModalProps) {
+export function UpgradeModal({ isOpen, onClose, currentCredits = 0, currentTier = null }: UpgradeModalProps) {
   const [loadingTier, setLoadingTier] = useState<PricingTier | null>(null);
 
   const handleSelectPlan = async (tier: PricingTier) => {
@@ -46,17 +46,18 @@ export function UpgradeModal({ isOpen, onClose, currentCredits = 0 }: UpgradeMod
     }
   };
 
+  if (!isOpen) return null;
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto p-8 relative">
-          {/* Close button */}
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl"
-          >
-            ×
-          </button>
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto p-8 relative" onClick={(e) => e.stopPropagation()}>
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl"
+        >
+          ×
+        </button>
 
           {/* Header */}
           <div className="text-center mb-8">
@@ -92,6 +93,11 @@ export function UpgradeModal({ isOpen, onClose, currentCredits = 0 }: UpgradeMod
                     MOST POPULAR
                   </div>
                 )}
+                {tier === currentTier && (
+                  <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-green-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                    CURRENT PLAN
+                  </div>
+                )}
 
                 <div className="text-center mb-6">
                   <h3 className="text-xl font-bold mb-2">{info.name}</h3>
@@ -118,28 +124,31 @@ export function UpgradeModal({ isOpen, onClose, currentCredits = 0 }: UpgradeMod
 
                 <Button
                   onClick={() => handleSelectPlan(tier)}
-                  disabled={loadingTier !== null}
+                  disabled={loadingTier !== null || tier === currentTier}
                   className={`w-full ${
                     info.popular
                       ? 'bg-blue-500 hover:bg-blue-600'
                       : 'bg-gray-900 hover:bg-gray-800'
-                  } text-white`}
+                  } text-white ${tier === currentTier ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  {loadingTier === tier ? 'Processing...' : 'Select Plan'}
+                  {tier === currentTier 
+                    ? 'Current Plan' 
+                    : loadingTier === tier 
+                    ? 'Processing...' 
+                    : 'Select Plan'}
                 </Button>
               </Card>
             ))}
           </div>
 
-          {/* Footer */}
-          <div className="mt-8 text-center text-sm text-gray-500">
-            <p>✓ Secure payment with Stripe</p>
-            <p className="mt-1">✓ Cancel anytime (subscription plans)</p>
-            <p className="mt-1">✓ Credits never expire (one-time purchases)</p>
-          </div>
+        {/* Footer */}
+        <div className="mt-8 text-center text-sm text-gray-500">
+          <p>✓ Secure payment with Stripe</p>
+          <p className="mt-1">✓ Cancel anytime (subscription plans)</p>
+          <p className="mt-1">✓ Credits never expire (one-time purchases)</p>
         </div>
       </div>
-    </Dialog>
+    </div>
   );
 }
 
