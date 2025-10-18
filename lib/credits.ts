@@ -57,12 +57,16 @@ export async function getTotalAvailableCredits(userId: string): Promise<number> 
  * Updates both user_credits and profiles tables
  * 
  * @param userId - The user's ID from Clerk
+ * @param bypassRLS - If true, uses admin client to bypass RLS (for server-side operations)
  * @returns New total credit balance after deduction
  */
-export async function deductCredit(userId: string): Promise<number> {
+export async function deductCredit(userId: string, bypassRLS: boolean = false): Promise<number> {
   try {
+    // Use admin client if bypassing RLS (server-side), otherwise use regular client
+    const client = bypassRLS ? supabaseAdmin : supabase;
+
     // Fetch user's credit allocations, oldest first
-    const { data: credits, error: fetchError } = await supabase
+    const { data: credits, error: fetchError } = await client
       .from('user_credits')
       .select('*')
       .eq('user_id', userId)
@@ -82,7 +86,7 @@ export async function deductCredit(userId: string): Promise<number> {
     const oldestCredit = credits[0];
     const newRemainingForOldest = oldestCredit.credits_remaining - 1;
 
-    const { error: updateError } = await supabase
+    const { error: updateError } = await client
       .from('user_credits')
       .update({ credits_remaining: newRemainingForOldest })
       .eq('id', oldestCredit.id);
@@ -96,7 +100,7 @@ export async function deductCredit(userId: string): Promise<number> {
     const newTotal = await getTotalAvailableCredits(userId);
 
     // Update profiles table with new total
-    const { error: profileError } = await supabase
+    const { error: profileError } = await client
       .from('profiles')
       .update({ credits: newTotal })
       .eq('user_id', userId);

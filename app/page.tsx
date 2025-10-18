@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { Header } from '@/components/header';
 import { PromptInput } from '@/components/prompt-input';
@@ -28,7 +28,7 @@ export default function Home() {
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
   // Fetch emojis from Supabase database
-  const fetchEmojis = async () => {
+  const fetchEmojis = useCallback(async () => {
     try {
       const response = await fetch('/api/emojis');
       const data = await response.json();
@@ -58,10 +58,10 @@ export default function Home() {
     } catch (error) {
       console.error('Error fetching emojis:', error);
     }
-  };
+  }, []);
 
   // Fetch folders from Supabase database
-  const fetchFolders = async () => {
+  const fetchFolders = useCallback(async () => {
     try {
       const response = await fetch('/api/folders');
       const data = await response.json();
@@ -72,10 +72,10 @@ export default function Home() {
     } catch (error) {
       console.error('Error fetching folders:', error);
     }
-  };
+  }, []);
 
   // Fetch user's current credits from Supabase
-  const fetchCredits = async () => {
+  const fetchCredits = useCallback(async () => {
     try {
       const response = await fetch('/api/profile/credits');
       const data = await response.json();
@@ -83,19 +83,14 @@ export default function Home() {
       if (data.success && typeof data.credits === 'number') {
         setCredits(data.credits);
         setCurrentTier(data.tier || null);
-        
-        // Close upgrade modal if user now has credits (only during payment polling)
-        if (data.credits > 0 && isUpgradeModalOpen) {
-          setIsUpgradeModalOpen(false);
-        }
       }
     } catch (error) {
       console.error('Error fetching credits:', error);
     }
-  };
+  }, []);
 
   // Handle successful payment return with credit polling
-  const handlePaymentSuccess = async () => {
+  const handlePaymentSuccess = useCallback(async () => {
     // Remove success param from URL
     window.history.replaceState({}, '', '/');
     
@@ -106,14 +101,33 @@ export default function Home() {
     let attempts = 0;
     const maxAttempts = 10;
     const pollInterval = 1000; // 1 second
+    let creditsDetected = false;
     
     const pollCredits = async () => {
-      await fetchCredits();
+      const response = await fetch('/api/profile/credits');
+      const data = await response.json();
+      
+      if (data.success && typeof data.credits === 'number') {
+        setCredits(data.credits);
+        setCurrentTier(data.tier || null);
+        
+        // Close upgrade modal and stop polling if credits are detected
+        if (data.credits > 0) {
+          creditsDetected = true;
+          setIsUpgradeModalOpen(false);
+          setIsLoading(false);
+          // Also load emojis and folders
+          fetchEmojis();
+          fetchFolders();
+          return;
+        }
+      }
+      
       attempts++;
       
-      if (attempts < maxAttempts) {
+      if (attempts < maxAttempts && !creditsDetected) {
         setTimeout(pollCredits, pollInterval);
-      } else {
+      } else if (!creditsDetected) {
         setIsLoading(false);
         // Also load emojis and folders
         fetchEmojis();
@@ -122,7 +136,7 @@ export default function Home() {
     };
     
     await pollCredits();
-  };
+  }, [isUpgradeModalOpen, fetchCredits, fetchEmojis, fetchFolders]);
 
   // Load emojis, folders, and credits from database when user is authenticated
   // Profile creation is now handled automatically by middleware
@@ -138,7 +152,7 @@ export default function Home() {
         fetchCredits();
       }
     }
-  }, [isLoaded, isSignedIn]);
+  }, [isLoaded, isSignedIn, handlePaymentSuccess, fetchEmojis, fetchFolders, fetchCredits]);
 
   const handleGenerate = async (prompt: string) => {
     if (credits <= 0) {

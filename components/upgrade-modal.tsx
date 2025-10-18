@@ -67,7 +67,7 @@ export function UpgradeModal({ isOpen, onClose, currentCredits = 0, currentTier 
             </div>
             {currentCredits === 0 ? (
               <p className="text-gray-600 mt-2">
-                You've used all your credits. Choose a plan to continue creating amazing emojis!
+                You&apos;ve used all your credits. Choose a plan to continue creating amazing emojis!
               </p>
             ) : (
               <p className="text-gray-600 mt-2">

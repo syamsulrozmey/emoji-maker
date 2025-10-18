@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { supabaseAdmin } from '@/lib/supabase';
 import { addCredits } from '@/lib/credits';
-import { getCreditsForTier, getPurchaseType, PricingTier } from '@/lib/pricing';
+import { getPurchaseType, PricingTier } from '@/lib/pricing';
 import Stripe from 'stripe';
 
 /**

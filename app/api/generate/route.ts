@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
     // Step 7: Deduct 1 credit using the new credit system
     let newCredits: number;
     try {
-      newCredits = await deductCredit(userId);
+      newCredits = await deductCredit(userId, true);
     } catch (creditError) {
       console.error('Error deducting credit:', creditError);
       // Use fallback - subtract from profile credits directly
