@@ -1,7 +1,11 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { ensureUserProfile } from "./lib/ensure-profile";
 
-const isPublicRoute = createRouteMatcher(['/sign-in(.*)', '/sign-up(.*)']);
+const isPublicRoute = createRouteMatcher([
+  '/sign-in(.*)', 
+  '/sign-up(.*)',
+  '/api/stripe/webhook'  // Stripe webhooks don't have user auth - secured via signature verification
+]);
 
 export default clerkMiddleware(async (auth, request) => {
   if (!isPublicRoute(request)) {
