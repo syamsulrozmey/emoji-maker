@@ -163,12 +163,19 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
     return;
   }
 
-  const subscriptionId = typeof invoice.subscription === 'string' 
-    ? invoice.subscription 
-    : invoice.subscription?.id;
+  // Safely access invoice properties that may not be in strict type definitions
+  const subscription = (invoice as any).subscription;
+  const subscriptionId = typeof subscription === 'string' 
+    ? subscription 
+    : subscription?.id;
   const customerId = typeof invoice.customer === 'string'
     ? invoice.customer
     : invoice.customer?.id;
+  
+  const paymentIntentRaw = (invoice as any).payment_intent;
+  const paymentIntentId = typeof paymentIntentRaw === 'string'
+    ? paymentIntentRaw
+    : paymentIntentRaw?.id;
 
   if (!subscriptionId) {
     console.log('No subscription ID in invoice');
@@ -176,8 +183,8 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
   }
 
   // Get user ID from subscription metadata
-  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-  const userId = subscription.metadata?.userId;
+  const subscriptionData = await stripe.subscriptions.retrieve(subscriptionId);
+  const userId = subscriptionData.metadata?.userId;
 
   if (!userId) {
     console.error('No userId in subscription metadata:', subscriptionId);
@@ -188,7 +195,7 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
   const { data: existingTransaction } = await supabaseAdmin
     .from('stripe_transactions')
     .select('id')
-    .eq('stripe_payment_id', invoice.payment_intent as string)
+    .eq('stripe_payment_id', paymentIntentId || '')
     .single();
 
   if (existingTransaction) {
@@ -205,7 +212,7 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
     .from('stripe_transactions')
     .insert({
       user_id: userId,
-      stripe_payment_id: invoice.payment_intent as string,
+      stripe_payment_id: paymentIntentId || invoice.id,
       stripe_customer_id: customerId,
       tier_purchased: tier,
       amount_usd: (invoice.amount_paid || 0) / 100,
@@ -214,7 +221,7 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
     });
 
   // Add credits
-  await addCredits(userId, creditsToAdd, 'subscription_monthly', invoice.payment_intent as string, subscriptionId, true);
+  await addCredits(userId, creditsToAdd, 'subscription_monthly', paymentIntentId || invoice.id, subscriptionId, true);
 
   console.log(`✅ Subscription renewal: ${creditsToAdd} credits added for user ${userId}`);
 }
