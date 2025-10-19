@@ -6,6 +6,15 @@ import { getPurchaseType, PricingTier } from '@/lib/pricing';
 import Stripe from 'stripe';
 
 /**
+ * Extended Invoice type that includes expandable properties
+ * Stripe API can return these as either IDs (strings) or expanded objects
+ */
+interface ExtendedInvoice extends Stripe.Invoice {
+  subscription?: string | Stripe.Subscription;
+  payment_intent?: string | Stripe.PaymentIntent;
+}
+
+/**
  * POST /api/stripe/webhook
  * Handles Stripe webhook events
  * 
@@ -51,7 +60,7 @@ export async function POST(request: NextRequest) {
       }
 
       case 'invoice.paid': {
-        const invoice = event.data.object as Stripe.Invoice;
+        const invoice = event.data.object as ExtendedInvoice;
         await handleInvoicePaid(invoice);
         break;
       }
@@ -157,25 +166,24 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 /**
  * Handle successful invoice payment (subscription renewals)
  */
-async function handleInvoicePaid(invoice: Stripe.Invoice) {
+async function handleInvoicePaid(invoice: ExtendedInvoice) {
   // Skip if this is the first invoice (already handled by checkout.session.completed)
   if (invoice.billing_reason === 'subscription_create') {
     return;
   }
 
-  // Safely access invoice properties that may not be in strict type definitions
-  const subscription = (invoice as any).subscription;
-  const subscriptionId = typeof subscription === 'string' 
-    ? subscription 
-    : subscription?.id;
+  // Extract subscription ID - can be string or expanded object
+  const subscriptionId = typeof invoice.subscription === 'string' 
+    ? invoice.subscription 
+    : invoice.subscription?.id;
   const customerId = typeof invoice.customer === 'string'
     ? invoice.customer
     : invoice.customer?.id;
   
-  const paymentIntentRaw = (invoice as any).payment_intent;
-  const paymentIntentId = typeof paymentIntentRaw === 'string'
-    ? paymentIntentRaw
-    : paymentIntentRaw?.id;
+  // Extract payment intent ID - can be string or expanded object
+  const paymentIntentId = typeof invoice.payment_intent === 'string'
+    ? invoice.payment_intent
+    : invoice.payment_intent?.id;
 
   if (!subscriptionId) {
     console.log('No subscription ID in invoice');
