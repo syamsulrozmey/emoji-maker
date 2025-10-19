@@ -130,6 +130,27 @@ export const PRICING_TIERS: Record<PricingTier, PricingTierInfo> = {
         available: true,
       },
       {
+        id: 'batch_generation',
+        label: 'Batch generation (3-5 variations)',
+        available: false,
+        status: 'coming_soon',
+        eta: 'Q1 2026',
+      },
+      {
+        id: 'public_gallery_analytics',
+        label: 'Public gallery with analytics',
+        available: false,
+        status: 'coming_soon',
+        eta: 'Q2 2026',
+      },
+      {
+        id: 'custom_prompt_library',
+        label: 'Custom style/prompt library (10 saved)',
+        available: false,
+        status: 'coming_soon',
+        eta: 'Q2 2026',
+      },
+      {
         id: 'public_gallery_share',
         label: 'Share to public gallery',
         available: false,

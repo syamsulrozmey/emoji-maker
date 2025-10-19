@@ -88,7 +88,7 @@ export function AddFolderDialog({
           <Button variant="outline" onClick={handleClose}>
             Cancel
           </Button>
-          <Button onClick={handleCreate}>Create Folder</Button>
+          <Button onClick={handleCreate} className="!bg-orange-700 hover:!bg-orange-600">Create Folder</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

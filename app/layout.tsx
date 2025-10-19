@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Emoji Maker - Generate Custom Emojis with AI",
-  description: "Create unique custom emojis using AI. Simply describe what you want and watch your emoji come to life.",
+  title: "EMJ — AI Emoji Generator | Custom Emojis You Don't Need But Will Buy Anyway",
+  description: "Generate custom emojis from text prompts using AI. Try 5 free credits. Like, download PNG with metadata, organize in folders, and use commercially. Because what the world really needed was AI-generated custom emojis.",
 };
 
 export default function RootLayout({

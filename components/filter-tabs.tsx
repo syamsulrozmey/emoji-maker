@@ -156,7 +156,7 @@ export function FilterTabs({
         <Button
           onClick={onCreateFolder}
           variant="outline"
-          className="flex items-center gap-2 rounded-lg bg-gray-900 hover:bg-gray-800 text-white border-0"
+          className="flex items-center gap-2 rounded-lg !bg-orange-700 hover:!bg-orange-600 text-white border-0"
         >
           <Plus className="h-4 w-4" />
           Add folder

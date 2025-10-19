@@ -30,7 +30,7 @@ export function PromptInput({ onGenerate, isLoading }: PromptInputProps) {
 
   return (
     <div className="w-full max-w-4xl mx-auto">
-      <div className="bg-white border border-slate-200 rounded-[8px] w-full">
+      <div className="bg-white border border-slate-200 rounded-[8px] w-full pb-[32px]">
         {/* Card Header */}
         <div className="flex flex-col items-center gap-[6px] p-[24px]">
           <h1 className="font-semibold text-[24px] leading-none text-slate-950 tracking-[-0.144px] text-center w-full">
@@ -76,7 +76,7 @@ export function PromptInput({ onGenerate, isLoading }: PromptInputProps) {
               <button
                 type="submit"
                 disabled={isLoading || !prompt.trim()}
-                className="bg-slate-900 h-[40px] px-[16px] rounded-[6px] flex items-center justify-center gap-[8px] w-full hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-orange-700 h-[40px] px-[16px] rounded-[6px] flex items-center justify-center gap-[8px] w-full hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <>

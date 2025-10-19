@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Check, Clock } from 'lucide-react';
 import { PRICING_TIERS, PricingTier } from '@/lib/pricing';
 
@@ -21,7 +20,7 @@ const TIER_BADGES: Record<PricingTier, string> = {
   pro_monthly: 'SUBSCRIPTION',
 };
 
-export function UpgradeModal({ isOpen, onClose, currentCredits = 0, currentTier = null }: UpgradeModalProps) {
+export function UpgradeModal({ isOpen, onClose, currentTier = null }: UpgradeModalProps) {
   const [loadingTier, setLoadingTier] = useState<PricingTier | null>(null);
 
   const handleSelectPlan = async (tier: PricingTier) => {
@@ -108,52 +107,32 @@ export function UpgradeModal({ isOpen, onClose, currentCredits = 0, currentTier 
 
               {/* Features */}
               <ul className="space-y-4 mb-8">
-                {info.features.map((feature) => {
-                  const statusBadgeMap = {
-                    planned: { label: 'Planned', color: 'bg-purple-100 text-purple-700' },
-                    in_development: { label: 'In Dev', color: 'bg-blue-100 text-blue-700' },
-                    coming_soon: { label: 'Coming Soon', color: 'bg-amber-100 text-amber-700' },
-                  };
-
-                  return (
-                    <li key={feature.id} className="flex items-start gap-3">
-                      {feature.available ? (
-                        <Check className="w-5 h-5 shrink-0 mt-0.5 text-gray-900" />
-                      ) : (
-                        <Clock className="w-5 h-5 shrink-0 mt-0.5 text-gray-400" />
-                      )}
-                      <div className="flex-1">
-                        <span className={`text-sm leading-relaxed ${feature.available ? 'text-gray-600' : 'text-gray-400'}`}>
-                          {feature.label}
+                {info.features.map((feature) => (
+                  <li key={feature.id} className="flex items-start gap-3">
+                    {feature.available ? (
+                      <Check className="w-5 h-5 shrink-0 mt-0.5 text-gray-900" />
+                    ) : (
+                      <Clock className="w-5 h-5 shrink-0 mt-0.5 text-gray-400" />
+                    )}
+                    <div className="flex-1">
+                      <span className={`text-sm leading-relaxed ${feature.available ? 'text-gray-600' : 'text-gray-400'}`}>
+                        {feature.label}
+                      </span>
+                      {!feature.available && (
+                        <span className="text-xs text-gray-400 mt-1 block">
+                          Coming Soon
                         </span>
-                        {!feature.available && (
-                          <div className="flex items-center gap-2 mt-1">
-                            {feature.status && (
-                              <Badge 
-                                variant="secondary" 
-                                className={`text-xs ${statusBadgeMap[feature.status]?.color || 'bg-gray-100 text-gray-700'}`}
-                              >
-                                {statusBadgeMap[feature.status]?.label || feature.status}
-                              </Badge>
-                            )}
-                            {feature.eta && (
-                              <span className="text-xs text-gray-400">
-                                ETA: {feature.eta}
-                              </span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </li>
-                  );
-                })}
+                      )}
+                    </div>
+                  </li>
+                ))}
               </ul>
 
               {/* Button */}
               <Button
                 onClick={() => handleSelectPlan(tier)}
                 disabled={loadingTier !== null || (tier === currentTier && info.type === 'subscription')}
-                className="w-full bg-black hover:bg-gray-800 text-white font-medium py-6 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="w-full bg-orange-700 hover:bg-orange-600 text-white font-medium py-6 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {tier === currentTier && info.type === 'subscription'
                   ? 'Current Plan' 
