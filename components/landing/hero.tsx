@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { Zap, Sparkles, Coins, Wand2, Lock, ShieldCheck, CreditCard, Download, Folder, Loader2 } from 'lucide-react';
 import {
   AlertDialog,

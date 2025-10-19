@@ -138,7 +138,7 @@ export default function Home() {
     };
     
     await pollCredits();
-  }, [isUpgradeModalOpen, fetchCredits, fetchEmojis, fetchFolders]);
+  }, [fetchEmojis, fetchFolders]);
 
   // Load emojis, folders, and credits from database when user is authenticated
   // Profile creation is now handled automatically by middleware
