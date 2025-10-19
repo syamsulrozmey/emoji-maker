@@ -37,7 +37,10 @@ export function Header({ credits = 0, onUpgradeClick }: HeaderProps) {
       </div>
       
       <div className="flex items-center gap-2">
-        <button className="h-[36px] w-[36px] flex items-center justify-center rounded-[6px] hover:bg-slate-100 transition-colors">
+        <button 
+          aria-label="Help"
+          className="h-[36px] w-[36px] flex items-center justify-center rounded-[6px] hover:bg-slate-100 transition-colors"
+        >
           <HelpCircle className="h-4 w-4 text-slate-600" />
         </button>
         

@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Check } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Check, Clock } from 'lucide-react';
 import { PRICING_TIERS, PricingTier } from '@/lib/pricing';
 
 interface UpgradeModalProps {
@@ -107,14 +108,42 @@ export function UpgradeModal({ isOpen, onClose, currentCredits = 0, currentTier 
 
               {/* Features */}
               <ul className="space-y-4 mb-8">
-                {info.features.map((feature, idx) => {
-                  const isComingSoon = feature.includes('(Coming soon)');
+                {info.features.map((feature) => {
+                  const statusBadgeMap = {
+                    planned: { label: 'Planned', color: 'bg-purple-100 text-purple-700' },
+                    in_development: { label: 'In Dev', color: 'bg-blue-100 text-blue-700' },
+                    coming_soon: { label: 'Coming Soon', color: 'bg-amber-100 text-amber-700' },
+                  };
+
                   return (
-                    <li key={idx} className="flex items-start gap-3">
-                      <Check className={`w-5 h-5 shrink-0 mt-0.5 ${isComingSoon ? 'text-gray-400' : 'text-gray-900'}`} />
-                      <span className={`text-sm leading-relaxed ${isComingSoon ? 'text-gray-400' : 'text-gray-600'}`}>
-                        {feature}
-                      </span>
+                    <li key={feature.id} className="flex items-start gap-3">
+                      {feature.available ? (
+                        <Check className="w-5 h-5 shrink-0 mt-0.5 text-gray-900" />
+                      ) : (
+                        <Clock className="w-5 h-5 shrink-0 mt-0.5 text-gray-400" />
+                      )}
+                      <div className="flex-1">
+                        <span className={`text-sm leading-relaxed ${feature.available ? 'text-gray-600' : 'text-gray-400'}`}>
+                          {feature.label}
+                        </span>
+                        {!feature.available && (
+                          <div className="flex items-center gap-2 mt-1">
+                            {feature.status && (
+                              <Badge 
+                                variant="secondary" 
+                                className={`text-xs ${statusBadgeMap[feature.status]?.color || 'bg-gray-100 text-gray-700'}`}
+                              >
+                                {statusBadgeMap[feature.status]?.label || feature.status}
+                              </Badge>
+                            )}
+                            {feature.eta && (
+                              <span className="text-xs text-gray-400">
+                                ETA: {feature.eta}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </li>
                   );
                 })}

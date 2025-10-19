@@ -5,12 +5,21 @@
 
 export type PricingTier = 'starter_pack' | 'pro_pack' | 'pro_monthly';
 
+export interface Feature {
+  id: string;
+  label: string;
+  available: boolean;
+  eta?: string;
+  status?: 'planned' | 'in_development' | 'coming_soon';
+  roadmapLink?: string;
+}
+
 export interface PricingTierInfo {
   name: string;
   price: number;
   credits: number;
   priceId: string;
-  features: string[];
+  features: Feature[];
   type: 'one_time' | 'subscription';
   popular?: boolean;
 }
@@ -23,11 +32,33 @@ export const PRICING_TIERS: Record<PricingTier, PricingTierInfo> = {
     priceId: process.env.STRIPE_STARTER_PACK_PRICE_ID || '',
     type: 'one_time',
     features: [
-      '30 credits',
-      'PNG export with metadata',
-      'Share to public gallery (Coming soon)',
-      'Personal & commercial use',
-      'Priority email support',
+      {
+        id: 'starter_credits',
+        label: '30 credits',
+        available: true,
+      },
+      {
+        id: 'png_export',
+        label: 'PNG export with metadata',
+        available: true,
+      },
+      {
+        id: 'public_gallery_share',
+        label: 'Share to public gallery',
+        available: false,
+        status: 'coming_soon',
+        eta: 'Q1 2026',
+      },
+      {
+        id: 'commercial_use',
+        label: 'Personal & commercial use',
+        available: true,
+      },
+      {
+        id: 'priority_email_support',
+        label: 'Priority email support',
+        available: true,
+      },
     ],
   },
   pro_pack: {
@@ -38,13 +69,47 @@ export const PRICING_TIERS: Record<PricingTier, PricingTierInfo> = {
     type: 'one_time',
     popular: true,
     features: [
-      '75 credits',
-      'PNG export with metadata',
-      'Batch generation (3-5 variations) (Coming soon)',
-      'Public gallery with analytics (Coming soon)',
-      'Custom style/prompt library (10 saved) (Coming soon)',
-      'Personal & commercial use',
-      'Priority support',
+      {
+        id: 'pro_credits',
+        label: '75 credits',
+        available: true,
+      },
+      {
+        id: 'png_export',
+        label: 'PNG export with metadata',
+        available: true,
+      },
+      {
+        id: 'batch_generation',
+        label: 'Batch generation (3-5 variations)',
+        available: false,
+        status: 'in_development',
+        eta: 'Q1 2026',
+      },
+      {
+        id: 'public_gallery_analytics',
+        label: 'Public gallery with analytics',
+        available: false,
+        status: 'coming_soon',
+        eta: 'Q2 2026',
+      },
+      {
+        id: 'custom_prompt_library',
+        label: 'Custom style/prompt library (10 saved)',
+        available: false,
+        status: 'planned',
+        eta: 'Q2 2026',
+      },
+      {
+        id: 'commercial_use',
+        label: 'Personal & commercial use',
+        available: true,
+      },
+      {
+        id: 'priority_support',
+        label: 'Priority support',
+        available: true,
+      },
     ],
   },
   pro_monthly: {
@@ -54,12 +119,38 @@ export const PRICING_TIERS: Record<PricingTier, PricingTierInfo> = {
     priceId: process.env.STRIPE_PRO_MONTHLY_PRICE_ID || '',
     type: 'subscription',
     features: [
-      '15 credits per month',
-      'PNG export with metadata',
-      'Share to public gallery (Coming soon)',
-      'Personal & commercial use',
-      'Priority support',
-      'Auto-renews monthly',
+      {
+        id: 'monthly_credits',
+        label: '15 credits per month',
+        available: true,
+      },
+      {
+        id: 'png_export',
+        label: 'PNG export with metadata',
+        available: true,
+      },
+      {
+        id: 'public_gallery_share',
+        label: 'Share to public gallery',
+        available: false,
+        status: 'coming_soon',
+        eta: 'Q1 2026',
+      },
+      {
+        id: 'commercial_use',
+        label: 'Personal & commercial use',
+        available: true,
+      },
+      {
+        id: 'priority_support',
+        label: 'Priority support',
+        available: true,
+      },
+      {
+        id: 'auto_renews',
+        label: 'Auto-renews monthly',
+        available: true,
+      },
     ],
   },
 };
