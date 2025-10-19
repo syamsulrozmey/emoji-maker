@@ -440,10 +440,13 @@ export default function Home() {
             onDeleteFolder={handleDeleteFolder}
           />
           
-          <div>
-            <h2 className="text-3xl font-bold mb-8">
-              Emoji you have generated so far
-            </h2>
+          <div className="flex flex-col gap-[16px]">
+            <div className="flex flex-col gap-[16px] pb-[16px]">
+              <h2 className="font-semibold text-[24px] leading-[32px] text-slate-950 tracking-[-0.144px]">
+                Emoji you have generated so far
+              </h2>
+              <div className="w-full h-px bg-slate-200" />
+            </div>
             <EmojiGrid
               emojis={filteredEmojis}
               onLike={handleLike}

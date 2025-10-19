@@ -2,7 +2,6 @@
 
 import { HelpCircle } from 'lucide-react';
 import { SignedIn, UserButton } from '@clerk/nextjs';
-import { Button } from './ui/button';
 
 interface HeaderProps {
   credits?: number;
@@ -11,40 +10,51 @@ interface HeaderProps {
 
 export function Header({ credits = 0, onUpgradeClick }: HeaderProps) {
   return (
-    <header className="w-full flex items-center justify-between py-4 px-6">
-      <div className="flex items-center gap-2">
-        <div className="w-8 h-8 flex items-center justify-center">
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M7 17L17 7" />
-            <path d="M7 7h10v10" />
-          </svg>
+    <header className="w-full flex items-center justify-between py-[12px] px-[16px] border-b border-slate-200">
+      <div className="flex items-center gap-[32px]">
+        <div className="flex items-center gap-[7px] h-[32px]">
+          {/* Logomark */}
+          <div className="h-[32px] w-[16px]">
+            <svg
+              width="16"
+              height="32"
+              viewBox="0 0 16 32"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M4 24L12 8" />
+              <path d="M4 8h8v16" />
+            </svg>
+          </div>
+          {/* Logotext */}
+          <div className="h-[32px] w-[103px] flex items-center">
+            <span className="text-xl font-semibold">EmojiMaker</span>
+          </div>
         </div>
       </div>
       
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" className="rounded-full">
-          <HelpCircle className="h-5 w-5 text-gray-600" />
-        </Button>
+      <div className="flex items-center gap-2">
+        <button className="h-[36px] w-[36px] flex items-center justify-center rounded-[6px] hover:bg-slate-100 transition-colors">
+          <HelpCircle className="h-4 w-4 text-slate-600" />
+        </button>
         
-        <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-          <span>{credits} credit{credits !== 1 ? 's' : ''} left</span>
+        <div className="flex items-center justify-center h-[36px] bg-white border border-slate-200 rounded-[6px] px-[16px]">
+          <span className="text-sm font-medium text-slate-950 tracking-[-0.084px] whitespace-nowrap">
+            {credits} credit{credits !== 1 ? 's' : ''} left
+          </span>
         </div>
         
-        <Button 
+        <button 
           onClick={onUpgradeClick}
-          className="bg-gray-900 hover:bg-gray-800 text-white rounded-lg px-6"
+          className="h-[36px] bg-slate-900 hover:bg-slate-800 text-slate-50 rounded-[6px] px-[16px] flex items-center justify-center transition-colors"
         >
-          Upgrade
-        </Button>
+          <span className="text-sm font-medium tracking-[-0.084px] whitespace-nowrap">
+            Upgrade
+          </span>
+        </button>
         
         <SignedIn>
           <UserButton afterSignOutUrl="/" />

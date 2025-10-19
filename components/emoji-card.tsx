@@ -49,9 +49,9 @@ export function EmojiCard({
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-[8px] w-[150px]">
       <div
-        className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 group cursor-pointer"
+        className="relative aspect-square rounded-[8px] overflow-hidden bg-gray-100 group cursor-pointer w-full"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onClick={onImageClick}
@@ -118,7 +118,7 @@ export function EmojiCard({
           </div>
         )}
       </div>
-      <h3 className="text-sm font-medium text-gray-900 truncate">{title}</h3>
+      <h3 className="font-medium text-[14px] leading-[20px] text-slate-950 tracking-[-0.084px]">{title}</h3>
     </div>
   );
 }
