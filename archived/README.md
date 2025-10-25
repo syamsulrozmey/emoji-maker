@@ -10,11 +10,19 @@ These files document the development journey and evolution of the Emoji Maker Sa
 
 ```
 archived/
+├── assets/        # Historical media and image assets
+│   └── landing-page-emojis/   # Original landing page images
 ├── docs/          # Historical implementation documentation
+├── requirements/  # Original AI/developer instruction documents
 └── sql/           # Old or superseded SQL migration scripts
 ```
 
 ## Archived Documentation (`docs/`)
+
+### FOLDERS_SETUP.md
+**Date Archived**: October 2025  
+**Reason**: Superseded by comprehensive documentation in README.md and ARCHITECTURE.md  
+**Context**: Original setup guide for the folders organization feature. All setup instructions are now consolidated in the main README and technical details are in ARCHITECTURE.md
 
 ### COMMIT_SUMMARY.md
 **Date Archived**: October 2025  
@@ -77,6 +85,35 @@ archived/
 **Date Archived**: October 2025  
 **Reason**: Potentially superseded by modular migration files  
 **Context**: Comprehensive schema definition. Current setup uses `supabase_saas_migration.sql` and `supabase_folders_schema.sql` for modular migrations
+
+## Archived Requirements (`requirements/`)
+
+### backend_instructions.md
+**Date Archived**: October 2025  
+**Reason**: AI/developer instruction document from initial development phase  
+**Context**: Original instructions for building the backend API routes, database integration, and Supabase setup. Kept for historical reference of initial development requirements.
+
+### frontend_instructions.md
+**Date Archived**: October 2025  
+**Reason**: AI/developer instruction document from initial development phase  
+**Context**: Original instructions for building the frontend UI components, Replicate integration, and emoji generation flow. Kept for historical reference of initial design requirements.
+
+### emoji_saas_requirements.md
+**Date Archived**: October 2025  
+**Reason**: AI/developer instruction document from SaaS implementation phase  
+**Context**: Detailed SaaS monetization requirements including tier structure, credit system, Stripe integration specs, and database schema requirements. Comprehensive specification document that guided the SaaS implementation.
+
+### Mockup.png
+**Date Archived**: October 2025  
+**Reason**: Copy archived for reference, original still referenced in README  
+**Context**: UI mockup used during initial design phase. Still referenced in the main README.md for project showcase.
+
+## Archived Assets (`assets/`)
+
+### landing-page-emojis/
+**Date Archived**: October 2025  
+**Reason**: Duplicate images with inconsistent naming  
+**Context**: Original landing page emoji images. These contained duplicates of images already in `public/gallery/` but with "(1)" suffixes and inconsistent naming. The `public/gallery/` versions are cleaner and actively used by the landing page components.
 
 ## Active Migration Scripts (Kept at Root)
 

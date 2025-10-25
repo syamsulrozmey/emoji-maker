@@ -2,7 +2,7 @@
 
 Generate custom emojis using AI-powered text-to-image generation with Replicate's SDXL Emoji model. A complete SaaS platform with credit-based monetization, Stripe payment integration, and user authentication.
 
-![Emoji Maker](requirements/Mockup.png)
+![Emoji Maker](archived/requirements/Mockup.png)
 
 ## ✨ Features
 
@@ -192,43 +192,80 @@ stripe listen --forward-to localhost:3000/api/stripe/webhook
 ```
 emoji-maker/
 ├── app/
-│   ├── api/
-│   │   └── generate/
-│   │       └── route.ts          # API route for emoji generation
-│   ├── favicon.ico
-│   ├── globals.css               # Global styles and animations
-│   ├── layout.tsx                # Root layout
-│   └── page.tsx                  # Main page with state management
+│   ├── api/                      # API routes
+│   │   ├── emojis/              # Emoji CRUD operations
+│   │   ├── folders/             # Folder management
+│   │   ├── generate/            # AI emoji generation
+│   │   ├── likes/               # Like system
+│   │   ├── profile/             # User profile & credits
+│   │   └── stripe/              # Payment processing
+│   ├── dashboard/               # Main dashboard page
+│   ├── sign-in/                 # Clerk sign-in page
+│   ├── sign-up/                 # Clerk sign-up page
+│   ├── globals.css              # Global styles and animations
+│   ├── layout.tsx               # Root layout with ClerkProvider
+│   └── page.tsx                 # Landing page
 ├── components/
-│   ├── ui/                       # shadcn/ui components
-│   ├── emoji-card.tsx            # Individual emoji card with hover effects
-│   ├── emoji-grid.tsx            # Grid layout for emojis
-│   ├── filter-tabs.tsx           # Category filter tabs
-│   ├── header.tsx                # Top navigation header
+│   ├── landing/                 # Landing page components
+│   │   ├── hero.tsx            # Hero section
+│   │   ├── features.tsx        # Features showcase
+│   │   ├── gallery.tsx         # Example gallery
+│   │   ├── pricing.tsx         # Pricing tiers
+│   │   ├── testimonials.tsx    # User testimonials
+│   │   └── faq.tsx             # FAQ section
+│   ├── ui/                      # shadcn/ui components
+│   ├── emoji-card.tsx           # Individual emoji card with hover effects
+│   ├── emoji-grid.tsx           # Grid layout for emojis
+│   ├── filter-tabs.tsx          # Folder tabs and filtering
+│   ├── folder-modal.tsx         # Folder assignment modal
+│   ├── header.tsx               # Dashboard header with credits
 │   ├── loading-skeleton.tsx     # Loading animation
-│   └── prompt-input.tsx          # Prompt input form
+│   ├── prompt-input.tsx         # Prompt input form
+│   ├── support-widget.tsx       # User support widget
+│   └── upgrade-modal.tsx        # Stripe pricing modal
 ├── lib/
-│   └── utils.ts                  # Utility functions
+│   ├── credits.ts               # Credit system logic
+│   ├── ensure-profile.ts        # Auto profile creation
+│   ├── pricing.ts               # Pricing tier config
+│   ├── profile-sync.ts          # Profile sync utilities
+│   ├── stripe.ts                # Stripe client
+│   ├── supabase.ts              # Supabase client
+│   └── utils.ts                 # Utility functions
+├── types/
+│   ├── emoji.ts                 # Emoji type definitions
+│   └── payment.ts               # Payment type definitions
+├── archived/                     # Historical docs and files
+├── middleware.ts                 # Clerk auth middleware
 ├── .env.example                  # Environment variables template
+├── ARCHITECTURE.md               # Technical architecture docs
+├── STRIPE_SETUP.md               # Stripe setup guide
+├── supabase_saas_migration.sql   # Main database migration
+├── supabase_folders_schema.sql   # Folders feature migration
 └── package.json
 ```
 
 ## 🎨 Components
 
 ### Header
-Displays credits, help button, upgrade option, and user avatar.
+Displays credits, help button, upgrade option, and user avatar with Clerk authentication.
 
 ### PromptInput
-Form component for entering text prompts to generate emojis.
+Form component for entering text prompts to generate emojis. Shows credit cost and validates input.
 
 ### FilterTabs
-Category filtering system with "All", "Animals", "Cars" tabs and folder management.
+Folder navigation system with "All" tab and custom user folders. Includes folder creation, renaming, and deletion.
 
 ### EmojiGrid
-Responsive grid layout displaying all generated emojis.
+Responsive grid layout displaying all generated emojis with loading states and empty states.
 
 ### EmojiCard
-Individual emoji display with hover effects revealing download and like buttons.
+Individual emoji display with hover effects revealing download, like, and folder assignment buttons.
+
+### UpgradeModal
+Pricing modal displaying all three tiers (Starter Pack, Pro Pack, Pro Monthly) with Stripe Checkout integration.
+
+### SupportWidget
+User support and help widget for easy access to documentation and assistance.
 
 ## 🔑 Environment Variables
 
@@ -382,5 +419,6 @@ This project is open source and available under the MIT License.
 ## 📞 Support
 
 - Check [STRIPE_SETUP.md](./STRIPE_SETUP.md) for payment setup
-- Review [requirements/emoji_saas_requirements.md](./requirements/emoji_saas_requirements.md) for specifications
+- Review [ARCHITECTURE.md](./ARCHITECTURE.md) for technical specifications
+- See [archived/requirements/](./archived/requirements/) for original development requirements
 - Open an issue for bugs or feature requests
