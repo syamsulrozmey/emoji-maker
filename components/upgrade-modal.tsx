@@ -15,9 +15,9 @@ interface UpgradeModalProps {
 
 // Map tier names to badge labels
 const TIER_BADGES: Record<PricingTier, string> = {
-  starter_pack: 'PLUS',
+  starter_pack: 'STARTER',
   pro_pack: 'PRO',
-  pro_monthly: 'SUBSCRIPTION',
+  pro_monthly: 'PRO MONTHLY',
 };
 
 export function UpgradeModal({ isOpen, onClose, currentTier = null }: UpgradeModalProps) {

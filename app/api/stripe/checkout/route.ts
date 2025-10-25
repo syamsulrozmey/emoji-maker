@@ -51,7 +51,18 @@ export async function POST(request: NextRequest) {
 
     let customerId = profile.stripe_customer_id;
 
-    // Create Stripe customer if doesn't exist
+    // Verify customer exists in Stripe (handle env switches between test/live)
+    if (customerId) {
+      try {
+        await stripe.customers.retrieve(customerId);
+      } catch (error) {
+        // Customer doesn't exist in current Stripe environment, create new one
+        console.log('Customer not found in Stripe, creating new:', customerId);
+        customerId = null;
+      }
+    }
+
+    // Create Stripe customer if doesn't exist or was invalid
     if (!customerId) {
       const customer = await stripe.customers.create({
         metadata: {
