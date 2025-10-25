@@ -10,6 +10,7 @@ import { AddFolderDialog } from '@/components/add-folder-dialog';
 import { FolderModal } from '@/components/folder-modal';
 import { ImageLightboxModal } from '@/components/image-lightbox-modal';
 import { UpgradeModal } from '@/components/upgrade-modal';
+import { SupportWidget } from '@/components/support-widget';
 import { Emoji, Folder } from '@/types/emoji';
 
 export default function Home() {
@@ -495,6 +496,8 @@ export default function Home() {
         currentCredits={credits}
         currentTier={currentTier}
       />
+
+      <SupportWidget />
     </div>
   );
 }
