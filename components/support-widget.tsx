@@ -23,7 +23,7 @@ export function SupportWidget() {
     const encodedBody = encodeURIComponent(
       `${message}\n\n---\nFrom: ${userEmail}`
     );
-    const mailtoLink = `mailto:syamsul.rozmey@gmail.com?subject=${encodedSubject}&body=${encodedBody}`;
+    const mailtoLink = `mailto:support@emojimaker.xyz?subject=${encodedSubject}&body=${encodedBody}`;
     
     // Open email client
     // Open email client

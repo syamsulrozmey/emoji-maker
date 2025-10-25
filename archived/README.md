@@ -105,8 +105,8 @@ archived/
 
 ### Mockup.png
 **Date Archived**: October 2025  
-**Reason**: Copy archived for reference, original still referenced in README  
-**Context**: UI mockup used during initial design phase. Still referenced in the main README.md for project showcase.
+**Reason**: Backup copy for reference; active version remains at project root  
+**Context**: UI mockup used during initial design phase. The primary version is maintained at the project root and referenced in the main README.md for project showcase.
 
 ## Archived Assets (`assets/`)
 
