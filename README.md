@@ -2,7 +2,7 @@
 
 Generate custom emojis using AI-powered text-to-image generation with Replicate's SDXL Emoji model. A complete SaaS platform with credit-based monetization, Stripe payment integration, and user authentication.
 
-![Emoji Maker](archived/requirements/Mockup.png)
+![Emoji Maker](archived/requirements/Mockup_v2.png)
 
 ## ✨ Features
 
