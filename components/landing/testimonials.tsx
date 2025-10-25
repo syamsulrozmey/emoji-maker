@@ -1,4 +1,5 @@
 import { Users } from 'lucide-react';
+import Image from 'next/image';
 
 export function Testimonials() {
   const testimonials = [
@@ -6,19 +7,19 @@ export function Testimonials() {
       name: 'Sarah K.',
       role: 'Definitely a real person',
       quote: 'I spent £9.99 on emoji credits instead of lunch. My priorities are finally sorted.',
-      gradient: 'from-slate-500/30 to-emerald-500/30'
+      avatar: '/aivatar_cir_10.png'
     },
     {
       name: 'Marcus T.',
       role: '100% not the founder\'s mate',
       quote: 'Generated "confused spreadsheet" for a work presentation. Got promoted. Correlation unclear.',
-      gradient: 'from-emerald-500/30 to-blue-500/30'
+      avatar: '/aivatar_cir_07.png'
     },
     {
       name: 'Alex P.',
       role: 'Paid actor (metaphorically)',
       quote: 'My Slack messages are now 40% custom emojis. HR asked me to stop. I bought more credits.',
-      gradient: 'from-blue-500/30 to-slate-500/30'
+      avatar: '/aivatar_cir_13.png'
     }
   ];
 
@@ -41,7 +42,14 @@ export function Testimonials() {
         {testimonials.map((testimonial, index) => (
           <div key={index} className="rounded-xl border border-white/10 bg-white/5 p-5">
             <div className="flex items-center gap-3">
-              <div className={`h-10 w-10 rounded-full bg-gradient-to-br ${testimonial.gradient} ring-1 ring-white/10`}></div>
+              <div className="relative h-10 w-10 rounded-full overflow-hidden ring-1 ring-white/10">
+                <Image
+                  src={testimonial.avatar}
+                  alt={testimonial.name}
+                  fill
+                  className="object-cover"
+                />
+              </div>
               <div>
                 <p className="text-sm font-medium">{testimonial.name}</p>
                 <p className="text-xs text-slate-400">{testimonial.role}</p>
