@@ -26,7 +26,10 @@ export function SupportWidget() {
     const mailtoLink = `mailto:syamsul.rozmey@gmail.com?subject=${encodedSubject}&body=${encodedBody}`;
     
     // Open email client
-    window.location.href = mailtoLink;
+    // Open email client
+    const anchor = document.createElement('a');
+    anchor.href = mailtoLink;
+    anchor.click();
     
     // Close panel and reset form
     setIsOpen(false);
